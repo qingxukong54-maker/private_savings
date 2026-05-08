@@ -1,0 +1,79 @@
+# 支出预算配置
+# 每月支出上限，超出会在 wiki/index.md 显示警告
+
+monthly_budget: 3000
+
+categories:
+  通信:
+    budget: 200
+    subcategories:
+      - 话费
+      - 流量
+      - 宽带
+
+  餐饮:
+    budget: 800
+    subcategories:
+      - 早餐
+      - 午餐
+      - 晚餐
+      - 咖啡/奶茶
+      - 外卖
+      - 零食
+
+  交通:
+    budget: 500
+    subcategories:
+      - 地铁
+      - 公交
+      - 打车
+      - 停车
+      - 油费
+
+  购物:
+    budget: 600
+    subcategories:
+      - 日用品
+      - 服装
+      - 电子产品
+      - 图书
+
+  娱乐:
+    budget: 300
+    subcategories:
+      - 电影
+      - 游戏
+      - 演唱会
+      - 旅游
+
+  居住:
+    budget: 500
+    subcategories:
+      - 房租
+      - 水电
+      - 物业
+      - 花呗还款
+
+  金融:
+    budget: 800
+    subcategories:
+      - 花呗还款
+      - 信用卡还款
+
+  医疗:
+    budget: 200
+    subcategories:
+      - 门诊
+      - 药品
+      - 体检
+
+  教育:
+    budget: 200
+    subcategories:
+      - 课程
+      - 书籍
+      - 培训
+
+  其他:
+    budget: 100
+    subcategories: []

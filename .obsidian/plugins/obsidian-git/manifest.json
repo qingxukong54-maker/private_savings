@@ -1,0 +1,10 @@
+{
+  "id": "obsidian-git",
+  "name": "Obsidian Git",
+  "version": "2.40.0",
+  "minAppVersion": "1.0.0",
+  "description": "Backup your vault with Git.",
+  "author": "Vinzent03",
+  "authorUrl": "https://github.com/Vinzent03",
+  "isDesktopOnly": true
+}

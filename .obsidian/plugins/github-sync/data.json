@@ -1,0 +1,9 @@
+{
+  "remoteURL": "https://github.com/qingxukong54-maker/private_savings.git",
+  "gitLocation": "",
+  "syncinterval": 5,
+  "isSyncOnLoad": true,
+  "checkStatusOnLoad": true,
+  "noticeLevel": "ALL",
+  "showSyncSuccessNotice": true
+}

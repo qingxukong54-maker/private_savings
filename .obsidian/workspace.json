@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "README.md",
+                "file": "wiki/charts.md",
                 "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "README"
+              "title": "charts"
             }
           }
         ]
@@ -94,6 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "wiki/charts.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -103,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "反向链接"
+              "title": "charts 的反向链接列表"
             }
           },
           {
@@ -178,11 +179,18 @@
       "daily-notes:打开/创建今天的日记": false,
       "templates:插入模板": false,
       "command-palette:打开命令面板": false,
-      "bases:新建数据库": false
+      "bases:新建数据库": false,
+      "github-sync:Sync with Remote": false
     }
   },
-  "active": "9a165ce330b41e07",
+  "active": "2c129f86115c9ba2",
   "lastOpenFiles": [
+    "wiki/monthly/2026-05.md",
+    "wiki/monthly/2026-04.md",
+    "wiki/index.md",
+    "wiki/yearly/2026.md",
+    "wiki/charts.md",
+    "README.md",
     "finance_vault/LICENSE",
     "finance_vault",
     "未命名 1.base",
@@ -190,11 +198,6 @@
     "未命名 3.base",
     "未命名 4.base",
     "未命名.base",
-    "README.md",
-    "README_TEMPLATE.md",
-    "wiki/charts.md",
-    "wiki/monthly/2026-04.md",
-    "wiki/monthly/2026-05.md",
-    "wiki/index.md"
+    "README_TEMPLATE.md"
   ]
 }

@@ -787,11 +787,11 @@ function renderBudget(){
     }
   });
 
-  // 自定义开支预算
+  // 开支预算
   let customExpenseList = '';
   (data.customBudgets||[]).filter(b=>b.type!=='debt').forEach((b,i)=>{
     customExpenseList += `<div class="budget-item">
-      <div class="budget-cat" style="background:var(--blue-light)">${b.emoji||'📌'}</div>
+      <div class="budget-cat" style="background:var(--blue-light)">${b.emoji||'📊'}</div>
       <div class="budget-info">
         <div class="budget-cat-name">${b.name}</div>
         <div class="budget-amounts" style="font-size:14px;font-weight:600;">预算 <span style="color:var(--primary-dark)">${fmt(b.amount)}</span></div>
@@ -851,7 +851,7 @@ function renderBudget(){
     </div>`;
 
   if(customExpenseList){
-    html += `<div class="section"><div class="section-header"><span class="section-title">📌 自定义开支预算</span><button style="font-size:13px;color:var(--primary);font-weight:600;" onclick="addCustomBudget()">+ 添加</button></div>
+    html += `<div class="section"><div class="section-header"><span class="section-title">📊 开支预算</span><button style="font-size:13px;color:var(--primary);font-weight:600;" onclick="addCustomBudget()">+ 添加</button></div>
       ${customExpenseList}
     </div>`;
   }
@@ -862,7 +862,7 @@ function renderBudget(){
     </div>`;
 
   if(!customExpenseList){
-    html += `<div class="section"><div class="section-header"><span class="section-title">📌 自定义开支预算</span><button style="font-size:13px;color:var(--primary);font-weight:600;" onclick="addCustomBudget()">+ 添加</button></div><div style="text-align:center;padding:12px;color:var(--text3);font-size:13px;">暂无自定义开支预算</div></div>`;
+    html += `<div class="section"><div class="section-header"><span class="section-title">📊 开支预算</span><button style="font-size:13px;color:var(--primary);font-weight:600;" onclick="addCustomBudget()">+ 添加</button></div><div style="text-align:center;padding:12px;color:var(--text3);font-size:13px;">暂无开支预算</div></div>`;
   }
 
   if(catOptions){
@@ -893,8 +893,8 @@ function addCustomBudget(){
   if(amountStr===null) return;
   const amount = parseFloat(amountStr);
   if(isNaN(amount)||amount<=0) return;
-  const emojis = ['📌','🔧','🚗','📱','💻','🏠','🎉','📦','💊','🎯'];
-  const emoji = prompt('选择 emoji（可选，直接回车跳过）：', emojis[Math.floor(Math.random()*emojis.length)]) || '📌';
+  const emojis = ['📊','🔧','🚗','📱','💻','🏠','🎉','📦','💊','🎯'];
+  const emoji = prompt('选择 emoji（可选，直接回车跳过）：', emojis[Math.floor(Math.random()*emojis.length)]) || '📊';
   if(!data.customBudgets) data.customBudgets = [];
   data.customBudgets.push({id: Date.now().toString(36), name: name.trim(), emoji, amount, type:budgetType});
   saveData(); renderPage();

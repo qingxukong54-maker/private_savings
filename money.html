@@ -782,45 +782,48 @@ function renderBudget(){
     const spent = catSpent[cat.id] || 0;
     if(budget > 0){
       const pct = Math.min(spent/budget*100, 100);
-      budgetList += `<div class="budget-item">
-        <div class="budget-cat" style="background:`+cat.color+`15">`+cat.emoji+`</div>
-        <div class="budget-info">
-          <div class="budget-cat-name">`+cat.name+`</div>
-          <div class="budget-bar"><div class="budget-bar-fill `+(spent>budget?'over':spent>budget*0.8?'warn':'ok')+`" style="width:`+pct+`%"></div></div>
-          <div class="budget-amounts">已花 <span style="color:`+(spent>budget?'var(--red)':'')+`">`+fmt(spent)+`</span> / 预算 `+fmt(budget)+`</div>
-        </div>
-        <button class="budget-edit" onclick="setBudget('`+cat.id+`')">✏️</button>
-      </div>`;
+      budgetList += '<div class="budget-item">' +
+        '<div class="budget-cat" style="background:' + cat.color + '15">' + cat.emoji + '</div>' +
+        '<div class="budget-info">' +
+          '<div class="budget-cat-name">' + cat.name + '</div>' +
+          '<div class="budget-bar"><div class="budget-bar-fill ' + (spent>budget?'over':spent>budget*0.8?'warn':'ok') + '" style="width:' + pct + '%"></div></div>' +
+          '<div class="budget-amounts">已花 <span style="color:' + (spent>budget?'var(--red)':'') + '">' + fmt(spent) + '</span> / 预算 ' + fmt(budget) + '</div>' +
+        '</div>' +
+        '<button class="budget-edit" onclick="setBudget(\'' + cat.id + '\')">✏️</button>' +
+      '</div>';
     }
   });
 
   // 自定义开支预算
   let customExpenseList = '';
-  (data.customBudgets||[]).filter(b=>b.type!='debt').forEach((b,i)=>{
-    customExpenseList += `<div class="budget-item">
-      <div class="budget-cat" style="background:var(--blue-light)">`+(b.emoji||'📌')+`</div>
-      <div class="budget-info">
-        <div class="budget-cat-name">`+b.name+`</div>
-        <div class="budget-amounts" style="font-size:14px;font-weight:600;">预算 <span style="color:var(--primary-dark)">`+fmt(b.amount)+`</span></div>
-      </div>
-      <button class="budget-edit" onclick="editCustomBudget(`+i+`)">✏️</button>
-      <button class="budget-edit" onclick="deleteCustomBudget(`+i+`)" style="color:var(--red);">🗑️</button>
-    </div>`;
+  (data.customBudgets||[]).forEach((b,i)=>{
+    if(b.type!='debt'){
+      customExpenseList += '<div class="budget-item">' +
+        '<div class="budget-cat" style="background:var(--blue-light)">' + (b.emoji||'📌') + '</div>' +
+        '<div class="budget-info">' +
+          '<div class="budget-cat-name">' + b.name + '</div>' +
+          '<div class="budget-amounts" style="font-size:14px;font-weight:600;">预算 <span style="color:var(--primary-dark)">' + fmt(b.amount) + '</span></div>' +
+        '</div>' +
+        '<button class="budget-edit" onclick="editCustomBudget(' + i + ')">✏️</button>' +
+        '<button class="budget-edit" onclick="deleteCustomBudget(' + i + ')" style="color:var(--red);">🗑️</button>' +
+      '</div>';
+    }
   });
 
   // 负债预算（还款计划）
   let debtList = '';
-  (data.customBudgets||[]).filter(b=>b.type=='debt').forEach((b,i)=>{
-    const realIdx = data.customBudgets.indexOf(b);
-    debtList += `<div class="budget-item">
-      <div class="budget-cat" style="background:var(--red-light)">`+(b.emoji||'💰')+`</div>
-      <div class="budget-info">
-        <div class="budget-cat-name">`+b.name+`</div>
-        <div class="budget-amounts" style="font-size:14px;font-weight:600;">待还 <span style="color:var(--red)">`+fmt(b.amount)+`</span></div>
-      </div>
-      <button class="budget-edit" onclick="editCustomBudget(`+realIdx+`)">✏️</button>
-      <button class="budget-edit" onclick="deleteCustomBudget(`+realIdx+`)" style="color:var(--red);">🗑️</button>
-    </div>`;
+  (data.customBudgets||[]).forEach((b,i)=>{
+    if(b.type=='debt'){
+      debtList += '<div class="budget-item">' +
+        '<div class="budget-cat" style="background:var(--red-light)">' + (b.emoji||'💰') + '</div>' +
+        '<div class="budget-info">' +
+          '<div class="budget-cat-name">' + b.name + '</div>' +
+          '<div class="budget-amounts" style="font-size:14px;font-weight:600;">待还 <span style="color:var(--red)">' + fmt(b.amount) + '</span></div>' +
+        '</div>' +
+        '<button class="budget-edit" onclick="editCustomBudget(' + i + ')">✏️</button>' +
+        '<button class="budget-edit" onclick="deleteCustomBudget(' + i + ')" style="color:var(--red);">🗑️</button>' +
+      '</div>';
+    }
   });
 
   if(!budgetList && !customExpenseList) budgetList = '<div class="empty"><div class="icon">🎯</div><p>还没有设置开支预算<br><small>点击分类旁的 + 号添加</small></p></div>';
@@ -830,38 +833,51 @@ function renderBudget(){
   let catOptions = '';
   EXPENSE_CATS.forEach(cat=>{
     if(!data.budgets[cat.id] || data.budgets[cat.id]<=0){
-      catOptions += '<div class="cat-item" onclick="setBudget(''+cat.id+'')"><span class="cat-emoji">'+cat.emoji+'</span>'+cat.name+'</div>';
+      catOptions += '<div class="cat-item" onclick="setBudget(\'' + cat.id + '\')"><span class="cat-emoji">' + cat.emoji + '</span>' + cat.name + '</div>';
     }
   });
 
-  return `
-    <div class="section">
-      <div class="section-header">
-        <span class="section-title">月度预算总览</span>
-        <span style="font-size:13px;color:var(--text3);">`+viewMonth.replace('-','年')+`月</span>
-      </div>
-      `+ (info.totalBudget > 0 ? `
-        <div style="text-align:center;margin-bottom:12px;">
-          <div style="font-size:13px;color:var(--text3);">已用 / 总预算</div>
-          <div style="font-size:22px;font-weight:700;">`+fmt(info.spent)+` <span style="color:var(--text3);font-size:16px;">/ `+fmt(info.totalBudget)+`</span></div>
-          <div class="budget-bar" style="margin:8px auto;max-width:300px;height:10px;">
-            <div class="budget-bar-fill `+(info.spent>info.totalBudget?'over':info.spent>info.totalBudget*0.8?'warn':'ok')+`" style="width:`+Math.min(info.spent/info.totalBudget*100,100)+`%"></div>
-          </div>
-          <div style="font-size:13px;color:var(--green);">剩余 `+fmt(Math.max(0,info.totalBudget-info.spent))+`</div>
-        </div>` : '') + `
-    </div>
-    <div class="section">
-      <div class="section-header"><span class="section-title">📊 开支预算</span></div>
-      `+budgetList+`
-    </div>
-    `+ (customExpenseList ? `<div class="section"><div class="section-header"><span class="section-title">📌 自定义开支预算</span><button style="font-size:13px;color:var(--primary);font-weight:600;" onclick="addCustomBudget()">+ 添加</button></div>`+customExpenseList+`</div>` : '') + `
-    <div class="section">
-      <div class="section-header"><span class="section-title">💰 负债预算（还款计划）</span><button style="font-size:13px;color:var(--primary);font-weight:600;" onclick="addDebtBudget()">+ 添加</button></div>
-      `+debtList+`
-    </div>
-    `+ (!customExpenseList ? `<div class="section"><div class="section-header"><span class="section-title">📌 自定义开支预算</span><button style="font-size:13px;color:var(--primary);font-weight:600;" onclick="addCustomBudget()">+ 添加</button></div><div style="text-align:center;padding:12px;color:var(--text3);font-size:13px;">暂无自定义开支预算</div></div>` : '') + `
-    `+ (catOptions ? `<div class="section"><div class="section-header"><span class="section-title">添加分类预算</span></div><div class="cat-grid">`+catOptions+`</div></div>` : '') + ``;
+  let html = '';
+  html += '<div class="section">' +
+    '<div class="section-header">' +
+      '<span class="section-title">月度预算总览</span>' +
+      '<span style="font-size:13px;color:var(--text3);">' + viewMonth.replace('-','年') + '月</span>' +
+    '</div>';
+  if(info.totalBudget > 0){
+    html += '<div style="text-align:center;margin-bottom:12px;">' +
+      '<div style="font-size:13px;color:var(--text3);">已用 / 总预算</div>' +
+      '<div style="font-size:22px;font-weight:700;">' + fmt(info.spent) + ' <span style="color:var(--text3);font-size:16px;">/ ' + fmt(info.totalBudget) + '</span></div>' +
+      '<div class="budget-bar" style="margin:8px auto;max-width:300px;height:10px;">' +
+        '<div class="budget-bar-fill ' + (info.spent>info.totalBudget?'over':info.spent>info.totalBudget*0.8?'warn':'ok') + '" style="width:' + Math.min(info.spent/info.totalBudget*100,100) + '%"></div>' +
+      '</div>' +
+      '<div style="font-size:13px;color:var(--green);">剩余 ' + fmt(Math.max(0,info.totalBudget-info.spent)) + '</div>' +
+    '</div>';
+  }
+  html += '</div>';
+
+  html += '<div class="section">' +
+    '<div class="section-header"><span class="section-title">📊 开支预算</span></div>' +
+    budgetList +
+  '</div>';
+
+  if(customExpenseList){
+    html += '<div class="section"><div class="section-header"><span class="section-title">📌 自定义开支预算</span><button style="font-size:13px;color:var(--primary);font-weight:600;" onclick="addCustomBudget()">+ 添加</button></div>' + customExpenseList + '</div>';
+  } else {
+    html += '<div class="section"><div class="section-header"><span class="section-title">📌 自定义开支预算</span><button style="font-size:13px;color:var(--primary);font-weight:600;" onclick="addCustomBudget()">+ 添加</button></div><div style="text-align:center;padding:12px;color:var(--text3);font-size:13px;">暂无自定义开支预算</div></div>';
+  }
+
+  html += '<div class="section">' +
+    '<div class="section-header"><span class="section-title">💰 负债预算（还款计划）</span><button style="font-size:13px;color:var(--primary);font-weight:600;" onclick="addDebtBudget()">+ 添加</button></div>' +
+    debtList +
+  '</div>';
+
+  if(catOptions){
+    html += '<div class="section"><div class="section-header"><span class="section-title">添加分类预算</span></div><div class="cat-grid">' + catOptions + '</div></div>';
+  }
+
+  return html;
 }
+
 
 function addDebtBudget(){
   const name = prompt('负债/还款名称（如：借呗还款）：');

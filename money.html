@@ -533,7 +533,18 @@ function makeSVGLineChart(labels, datasets, width, height){
   let minV = Math.min(...allVals);
   let maxV = Math.max(...allVals);
   if(minV===maxV){ minV-=1; maxV+=1; }
-  const rangeV = maxV-minV||1;
+  let rangeV = maxV-minV||1;
+  // 增加 12% 上下边距，防止数据点贴边被截断
+  const padV = rangeV * 0.12;
+  maxV += padV;
+  const allNonNegative = allVals.every(v => v >= 0);
+  if (allNonNegative && minV >= 0) {
+    if (minV > 0) { minV = Math.max(0, minV - padV); }
+    // 若 minV === 0 则保持为 0，避免 Y 轴出现负值标签
+  } else {
+    minV -= padV;
+  }
+  rangeV = maxV - minV || 1;
   let svg = `<svg viewBox="0 0 ${width} ${height}" style="width:100%;height:auto;font-size:10px;">`;
   // 网格线 + Y轴标签
   for(let i=0;i<=4;i++){

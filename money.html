@@ -381,7 +381,6 @@ let data = {
     {id:'zhuomian_shouna',name:'桌面收纳盒',emoji:'📦',amount:27},
     {id:'baiban_zhi',name:'白板纸',emoji:'📝',amount:26},
     {id:'bi_bancai',name:'笔+板擦',emoji:'✏️',amount:10},
-  ,
     {id:'repay_借呗还款',name:'借呗还款',emoji:'💳',amount:1132.48,type:'debt'}
   ], settings:{theme:'light'}, version:VERSION
 };
@@ -488,12 +487,20 @@ function getYearlyData(){
     months.push(ym);
   }
   const labels = months.map(m=>m.slice(5)+'月');
+  // 预建索引：按月分组交易，避免每次 filter
+  const txnByMonth = {};
+  (data.transactions||[]).forEach(t=>{
+    if(!t.date) return;
+    const ym = t.date.slice(0,7);
+    if(!txnByMonth[ym]) txnByMonth[ym]=[];
+    txnByMonth[ym].push(t);
+  });
   const balanceData = [];
   const expData = [];
   const incData = [];
   let cumulative = 0;
   months.forEach(ym=>{
-    const txns = (data.transactions||[]).filter(t=>t.date&&t.date.startsWith(ym));
+    const txns = txnByMonth[ym]||[];
     const exp = txns.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
     const inc = txns.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
     cumulative += inc - exp;
@@ -514,24 +521,22 @@ function getDebtYearlyData(){
     months.push(ym);
   }
   const labels = months.map(m=>m.slice(5)+'月');
-  const debtData = [];
-  months.forEach(ym=>{
-    let monthDebt = 0;
-    (data.customBudgets||[]).forEach(b=>{
-      if(b.type==='debt'){
-        // 负债预算金额视为当月负债
-        monthDebt += b.amount||0;
-      }
-    });
-    // 从交易记录中统计当月还款支出
-    const txns = (data.transactions||[]).filter(t=>t.date&&t.date.startsWith(ym));
-    const repay = txns.filter(t=>t.type==='expense'&&(t.category==='repayment'||(t.note&&t.note.includes('还款')))).reduce((s,t)=>s+t.amount,0);
-    debtData.push(Math.round((monthDebt-repay)*100)/100);
-    // 简化处理：用负债预算总额代表当前负债
+  // 预建还款交易索引
+  const repayByMonth = {};
+  (data.transactions||[]).forEach(t=>{
+    if(!t.date) return;
+    if(t.type!=='expense') return;
+    if(t.category!=='repayment'&&!(t.note&&t.note.includes('还款'))) return;
+    const ym = t.date.slice(0,7);
+    if(!repayByMonth[ym]) repayByMonth[ym]=0;
+    repayByMonth[ym] += t.amount;
   });
-  // 更简单的处理：直接用负债预算总额
-  const totalDebt = (data.customBudgets||[]).filter(b=>b.type==='debt').reduce((s,b)=>s+(b.amount||0),0);
-  return {labels, debtData, totalDebt};
+  const debtTotal = (data.customBudgets||[]).filter(b=>b.type==='debt').reduce((s,b)=>s+(b.amount||0),0);
+  const debtData = months.map(ym=>{
+    const repay = repayByMonth[ym]||0;
+    return Math.round((debtTotal-repay)*100)/100;
+  });
+  return {labels, debtData, totalDebt:debtTotal};
 }
 
 // ===== 生成 SVG 折线图 =====
@@ -540,7 +545,8 @@ function makeSVGLineChart(labels, datasets, width, height){
   const padL=40, padR=20, padT=20, padB=30;
   const chartW = width-padL-padR;
   const chartH = height-padT-padB;
-  const allVals = datasets.flatMap(d=>d.data);
+  const allVals = datasets.flatMap(d=>d.data).filter(v=>typeof v==='number'&&!Number.isNaN(v));
+  if(allVals.length===0){ allVals.push(0); }
   let minV = Math.min(...allVals);
   let maxV = Math.max(...allVals);
   if(minV===maxV){ minV-=1; maxV+=1; }
@@ -567,7 +573,7 @@ function makeSVGLineChart(labels, datasets, width, height){
       const y = padT + chartH*(1-(v-minV)/rangeV);
       path += (i===0?'M':'L') + `${x.toFixed(1)},${y.toFixed(1)}`;
       dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${ds.color}" stroke="#fff" stroke-width="1.5" opacity="0" class="dot">`;
-      dots += `<title>${lb}: ${fmt(v)}</title>`;
+      dots += `<title>${labels[i]}: ${fmt(v)}</title>`;
       dots += `</circle>`;
     });
     svg += `<path d="${path}" fill="none" stroke="${ds.color}" stroke-width="2" opacity=".8"/>`;
@@ -639,11 +645,11 @@ function renderHome(){
   const yearData = getYearlyData();
   const chartW = 680, chartH = 200;
   const balanceChart = makeSVGLineChart(yearData.labels, [
-    {label:'结余', data:yearData.balanceData, color:'var(--blue)'}
+    {label:'结余', data:yearData.balanceData, color:'#3B82F6'}
   ], chartW, chartH);
   const debtChartData = getDebtYearlyData();
   const debtChart = makeSVGLineChart(debtChartData.labels, [
-    {label:'负债', data:debtChartData.debtData, color:'var(--red)'}
+    {label:'负债', data:debtChartData.debtData, color:'#EF4444'}
   ], chartW, chartH);
 
   // 负债预算列表
@@ -1555,7 +1561,7 @@ function showSync(msg,dur=2000,isError=false){
 }
 
 // Init cloud
-if(cloudConfig&&cloudConfig.gistId) setTimeout(()=>cloudLoad(),500);
+if(cloudConfig&&cloudConfig.gistId) setTimeout(()=>cloudLoad(),3000);
 if(cloudConfig&&cloudConfig.gistId) setInterval(()=>cloudLoad(true),30000);
 
 // ===== EXPORT / IMPORT =====

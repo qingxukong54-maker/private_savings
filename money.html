@@ -752,14 +752,18 @@ function getBudgetInfo(){
   const expTxns = thisMonthTxns('expense');
   const catSpent = {};
   expTxns.forEach(t=>{ if(!catSpent[t.category]) catSpent[t.category]=0; catSpent[t.category]+=t.amount; });
-  let totalBudget=0, totalSpent=0;
+  let expenseBudget=0, expenseSpent=0;
   Object.entries(data.budgets).forEach(([catId,budget])=>{
-    totalBudget+=budget;
-    totalSpent+=(catSpent[catId]||0);
+    expenseBudget+=budget;
+    expenseSpent+=(catSpent[catId]||0);
   });
-  // 自定义预算项 - 只统计开支预算
-  (data.customBudgets||[]).forEach(b=>{ if(b.type!=='debt') totalBudget+=b.amount; });
-  return {totalBudget, spent:totalSpent};
+  // 自定义预算项
+  (data.customBudgets||[]).forEach(b=>{ if(b.type!=='debt') expenseBudget+=b.amount; });
+  // 负债预算
+  let debtBudget=0;
+  (data.customBudgets||[]).forEach(b=>{ if(b.type==='debt') debtBudget+=b.amount; });
+  const totalBudget = expenseBudget + debtBudget;
+  return {totalBudget, expenseBudget, debtBudget, spent:expenseSpent};
 }
 
 function renderBudget(){
@@ -833,16 +837,37 @@ function renderBudget(){
         <span class="section-title">月度预算总览</span>
         <span style="font-size:13px;color:var(--text3);">${viewMonth.replace('-','年')}月</span>
       </div>`;
-  if(info.totalBudget > 0){
-    html += `<div style="text-align:center;margin-bottom:12px;">
-          <div style="font-size:13px;color:var(--text3);">已用 / 总预算</div>
-          <div style="font-size:22px;font-weight:700;">${fmt(info.spent)} <span style="color:var(--text3);font-size:16px;">/ ${fmt(info.totalBudget)}</span></div>
-          <div class="budget-bar" style="margin:8px auto;max-width:300px;height:10px;">
-            <div class="budget-bar-fill ${info.spent>info.totalBudget?'over':info.spent>info.totalBudget*0.8?'warn':'ok'}" style="width:${Math.min(info.spent/info.totalBudget*100,100)}%"></div>
-          </div>
-          <div style="font-size:13px;color:var(--green);">剩余 ${fmt(Math.max(0,info.totalBudget-info.spent))}</div>
-        </div>`;
-  }
+  // 月度预算总览（左右布局）
+  const expenseBudget = info.expenseBudget || 0;
+  const debtBudget = info.debtBudget || 0;
+  const totalBudget = expenseBudget + debtBudget;
+  const pctExpense = totalBudget > 0 ? Math.round(expenseBudget/totalBudget*100) : 0;
+  const pctDebt = totalBudget > 0 ? Math.round(debtBudget/totalBudget*100) : 0;
+
+  html += `<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:120px;background:var(--surface2);border-radius:var(--radius-sm);padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <div style="font-size:13px;color:var(--text3);">总预算</div>
+      <div style="font-size:28px;font-weight:700;margin-top:4px;">${fmt(totalBudget)}</div>
+    </div>
+    <div style="flex:2;min-width:220px;background:var(--surface2);border-radius:var(--radius-sm);padding:16px;">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+        <span style="color:var(--blue);">开支预算</span>
+        <span style="color:var(--red);">负债预算</span>
+      </div>
+      <div style="text-align:center;font-size:20px;font-weight:700;margin:4px 0;">
+        ${fmt(info.spent)} <span style="color:var(--text3);font-size:15px;">/ ${fmt(totalBudget)}</span>
+      </div>
+      <div style="height:10px;background:var(--surface3);border-radius:5px;overflow:hidden;margin:6px 0;display:flex;">
+        <div style="width:${pctExpense}%;background:var(--blue);"></div>
+        <div style="width:${pctDebt}%;background:var(--red);"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:4px;">
+        <span>开支预算总额 ${fmt(expenseBudget)}</span>
+        <span>负债预算总额 ${fmt(debtBudget)}</span>
+      </div>
+      <div style="text-align:center;font-size:13px;color:var(--green);font-weight:600;">剩余 ${fmt(Math.max(0,totalBudget-info.spent))}</div>
+    </div>
+  </div>`;
   html += `</div>`;
 
   html += `<div class="section">

@@ -352,7 +352,19 @@ function getCat(id){
 
 // ===== DATA =====
 let data = {
-  transactions:[], accounts:[...DEFAULT_ACCOUNTS],
+  transactions:[
+    // 2026-05-27
+    {id:'txn_1748332800001',type:'expense',amount:1132.48,category:'repayment',account:'xiamen_bank',note:'借呗还款',date:'2026-05-27',time:'14:30',createTime:1748332800001},
+    {id:'txn_1748332800002',type:'income',amount:274.8,category:'other_inc',account:'wechat',note:'许总收款',date:'2026-05-27',time:'15:00',createTime:1748332800002},
+    {id:'txn_1748332800003',type:'expense',amount:0.22,category:'other_exp',account:'wechat',note:'微信提现手续费',date:'2026-05-27',time:'12:00',createTime:1748332800003},
+    {id:'txn_1748332800004',type:'expense',amount:12.7,category:'food',account:'wechat',note:'午饭',date:'2026-05-27',time:'12:30',createTime:1748332800004},
+    {id:'txn_1748419200002',type:'expense',amount:1.0,category:'transport',account:'wechat',note:'下班公交',date:'2026-05-27',time:'18:30',createTime:1748419200002},
+    // 2026-05-28
+    {id:'txn_1748419200001',type:'income',amount:912.05,category:'other_inc',account:'xiamen_bank',note:'俞涛B店退店提现',date:'2026-05-28',time:'09:00',createTime:1748419200001},
+    {id:'txn_1748419200003',type:'expense',amount:11.0,category:'other_exp',account:'wechat',note:'买烟',date:'2026-05-28',time:'08:00',createTime:1748419200003},
+    {id:'txn_1748419200004',type:'expense',amount:1.0,category:'transport',account:'wechat',note:'上班公交',date:'2026-05-28',time:'08:30',createTime:1748419200004},
+    {id:'txn_1748419200005',type:'expense',amount:3.5,category:'food',account:'wechat',note:'买水',date:'2026-05-28',time:'14:00',createTime:1748419200005}
+  ], accounts:[...DEFAULT_ACCOUNTS],
   budgets:{}, customBudgets:[
     {id:'xiutianke',name:'修添可',emoji:'🔧',amount:300},
     {id:'xiuweibolu',name:'修微波炉',emoji:'🔧',amount:200},

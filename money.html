@@ -868,12 +868,7 @@ function renderBudget(){
   </div>`;
   html += `</div>`;
 
-  html += `<div class="section">
-      <div class="section-header"><span class="section-title">📊 开支预算</span></div>
-      ${budgetList}
-    </div>`;
-
-  if(customExpenseList){
+if(customExpenseList){
     html += `<div class="section"><div class="section-header"><span class="section-title">📌 开支预算</span><button style="font-size:13px;color:var(--primary);font-weight:600;" onclick="addCustomBudget()">+ 添加</button></div>
       ${customExpenseList}
     </div>`;

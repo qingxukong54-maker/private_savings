@@ -477,18 +477,135 @@ function getMonthSummary(){
 }
 
 // ===== HOME PAGE =====
+
+// ===== 辅助函数：年度结余折线图数据 =====
+function getYearlyData(){
+  const now = new Date();
+  const months = [];
+  for(let i=11; i>=0; i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const ym = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    months.push(ym);
+  }
+  const labels = months.map(m=>m.slice(5)+'月');
+  const balanceData = [];
+  const expData = [];
+  const incData = [];
+  let cumulative = 0;
+  months.forEach(ym=>{
+    const txns = (data.transactions||[]).filter(t=>t.date&&t.date.startsWith(ym));
+    const exp = txns.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+    const inc = txns.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+    cumulative += inc - exp;
+    balanceData.push(Math.round(cumulative*100)/100);
+    expData.push(Math.round(exp*100)/100);
+    incData.push(Math.round(inc*100)/100);
+  });
+  return {labels, balanceData, expData, incData};
+}
+
+// ===== 辅助函数：负债月度折线图数据 =====
+function getDebtYearlyData(){
+  const now = new Date();
+  const months = [];
+  for(let i=11; i>=0; i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const ym = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    months.push(ym);
+  }
+  const labels = months.map(m=>m.slice(5)+'月');
+  const debtData = [];
+  months.forEach(ym=>{
+    let monthDebt = 0;
+    (data.customBudgets||[]).forEach(b=>{
+      if(b.type==='debt'){
+        // 负债预算金额视为当月负债
+        monthDebt += b.amount||0;
+      }
+    });
+    // 从交易记录中统计当月还款支出
+    const txns = (data.transactions||[]).filter(t=>t.date&&t.date.startsWith(ym));
+    const repay = txns.filter(t=>t.type==='expense'&&(t.category==='repayment'||(t.note&&t.note.includes('还款')))).reduce((s,t)=>s+t.amount,0);
+    debtData.push(Math.round((monthDebt-repay)*100)/100);
+    // 简化处理：用负债预算总额代表当前负债
+  });
+  // 更简单的处理：直接用负债预算总额
+  const totalDebt = (data.customBudgets||[]).filter(b=>b.type==='debt').reduce((s,b)=>s+(b.amount||0),0);
+  return {labels, debtData, totalDebt};
+}
+
+// ===== 生成 SVG 折线图 =====
+function makeSVGLineChart(labels, datasets, width, height){
+  // datasets: [{label, data, color}]
+  const padL=40, padR=20, padT=20, padB=30;
+  const chartW = width-padL-padR;
+  const chartH = height-padT-padB;
+  const allVals = datasets.flatMap(d=>d.data);
+  let minV = Math.min(...allVals);
+  let maxV = Math.max(...allVals);
+  if(minV===maxV){ minV-=1; maxV+=1; }
+  const rangeV = maxV-minV||1;
+  let svg = `<svg viewBox="0 0 ${width} ${height}" style="width:100%;height:auto;font-size:10px;">`;
+  // 网格线 + Y轴标签
+  for(let i=0;i<=4;i++){
+    const y = padT + chartH*(1-i/4);
+    const v = minV + rangeV*(i/4);
+    svg += `<line x1="${padL}" y1="${y}" x2="${width-padR}" y2="${y}" stroke="#e5e7eb" stroke-dasharray="3,3"/>`;
+    svg += `<text x="${padL-4}" y="${y+4}" text-anchor="end" fill="#999" font-size="10">${fmt(v)}</text>`;
+  }
+  // X轴标签
+  labels.forEach((lb,i)=>{
+    const x = padL + chartW*i/(labels.length-1||1);
+    svg += `<text x="${x}" y="${height-padB+16}" text-anchor="middle" fill="#999" font-size="10">${lb}</text>`;
+  });
+  // 绘制每条折线
+  datasets.forEach(ds=>{
+    let path = '';
+    let dots = '';
+    ds.data.forEach((v,i)=>{
+      const x = padL + chartW*i/(labels.length-1||1);
+      const y = padT + chartH*(1-(v-minV)/rangeV);
+      path += (i===0?'M':'L') + `${x.toFixed(1)},${y.toFixed(1)}`;
+      dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${ds.color}" stroke="#fff" stroke-width="1.5" opacity="0" class="dot">`;
+      dots += `<title>${lb}: ${fmt(v)}</title>`;
+      dots += `</circle>`;
+    });
+    svg += `<path d="${path}" fill="none" stroke="${ds.color}" stroke-width="2" opacity=".8"/>`;
+    svg += dots;
+  });
+  svg += `</svg>`;
+  return svg;
+}
+
 function renderHome(){
   const s = getMonthSummary();
-  const txns = monthTxns().sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id));
-  const todayTxns = txns.filter(t=>t.date===todayStr());
+  const yearNow = new Date().getFullYear();
+  const ymNow = new Date().toISOString().slice(0,7);
 
-  // Group by date
+  // 本年度所有月份数据
+  const yearTxns = (data.transactions||[]).filter(t=>t.date&&t.date.startsWith(yearNow));
+  const yearExp = yearTxns.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const yearInc = yearTxns.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const yearBalance = yearInc - yearExp;
+
+  // 账户余额
+  const accounts = (data.accounts||[]).filter(a=>a.includeTotal!==false);
+  const totalBalance = accounts.reduce((s,a)=>s+(a.balance||0),0);
+  let accountList = '';
+  accounts.forEach(a=>{
+    accountList += `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--surface3);">
+      <span>${a.emoji||'💳'} ${a.name}</span>
+      <span style="font-weight:600;color:${a.balance>=0?'var(--green)':'var(--red)'}">${fmt(a.balance||0)}</span>
+    </div>`;
+  });
+
+  // 本月交易列表（最近5天）
+  const txns = monthTxns().sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id));
   const groups = {};
   txns.slice(0,30).forEach(t=>{
     if(!groups[t.date]) groups[t.date]=[];
     groups[t.date].push(t);
   });
-
   let txList = '';
   const dates = Object.keys(groups).sort().reverse().slice(0,5);
   dates.forEach(date=>{
@@ -499,7 +616,6 @@ function renderHome(){
     const d = new Date(date+'T00:00:00');
     const weekDays = ['日','一','二','三','四','五','六'];
     dayStr += ' 周'+weekDays[d.getDay()];
-
     txList += `<div class="tx-group-title"><span class="date">${dayStr}</span><span class="day-total">${dayExp?'支出 '+fmt(dayExp):''}${dayInc?' 收入 '+fmt(dayInc):''}</span></div>`;
     dayTxns.forEach(t=>{
       const cat = getCat(t.category);
@@ -517,40 +633,105 @@ function renderHome(){
       </div>`;
     });
   });
+  if(!txList) txList = `<div class="empty"><div class="icon">📭</div><p>这个月还没有记录</p></div>`;
 
-  if(!txList) txList = `<div class="empty"><div class="icon">📝</div><p>这个月还没有记录</p></div>`;
+  // 年度折线图数据
+  const yearData = getYearlyData();
+  const chartW = 680, chartH = 200;
+  const balanceChart = makeSVGLineChart(yearData.labels, [
+    {label:'结余', data:yearData.balanceData, color:'var(--blue)'}
+  ], chartW, chartH);
+  const debtChartData = getDebtYearlyData();
+  const debtChart = makeSVGLineChart(debtChartData.labels, [
+    {label:'负债', data:debtChartData.debtData, color:'var(--red)'}
+  ], chartW, chartH);
 
-  const budgetInfo = getBudgetInfo();
-  let budgetHtml = '';
-  if(budgetInfo.total > 0){
-    const pct = Math.round(budgetInfo.spent/budgetInfo.total*100);
-    budgetHtml = `<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.2);">
-      <div style="font-size:12px;opacity:.7;margin-bottom:4px;">月度预算</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:14px;font-weight:600;">${fmt(budgetInfo.spent)} / ${fmt(budgetInfo.total)}</span>
-        <span style="font-size:13px;">${pct}%</span>
-      </div>
-      <div class="budget-bar" style="margin-top:4px;background:rgba(255,255,255,.2);"><div class="budget-bar-fill ${pct>100?'over':pct>80?'warn':'ok'}" style="width:${Math.min(pct,100)}%;background:${pct>100?'#FCA5A5':pct>80?'#FDE68A':'#86EFAC'};"></div></div>
+  // 负债预算列表
+  let debtList = '';
+  (data.customBudgets||[]).filter(b=>b.type==='debt').forEach((b,i)=>{
+    debtList += `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--surface3);">
+      <span>${b.emoji||'💳'} ${b.name}</span>
+      <span style="font-weight:600;color:var(--red)">${fmt(b.amount||0)}</span>
     </div>`;
-  }
+  });
+  const totalDebt = (data.customBudgets||[]).filter(b=>b.type==='debt').reduce((s,b)=>s+(b.amount||0),0);
 
   return `
     ${monthSelectorHtml()}
-    <div class="summary-card">
-      <div class="label">本月结余</div>
-      <div class="amount">${fmt(s.balance)}</div>
-      <div class="row">
-        <div class="stat"><div class="s-label">支出</div><div class="s-val">${fmt(s.expense)}</div></div>
-        <div class="stat"><div class="s-label">收入</div><div class="s-val">${fmt(s.income)}</div></div>
+    <div class="page-content">
+
+      <!-- 模块1：资产余额 -->
+      <div class="section">
+        <div class="section-header"><span class="section-title">💰 资产余额</span></div>
+        <div style="padding:12px 0;">
+          <div style="font-size:28px;font-weight:700;color:var(--green);margin-bottom:12px;">${fmt(totalBalance)}</div>
+          ${accountList}
+        </div>
       </div>
-      ${budgetHtml}
-    </div>
-    <div class="section">
-      <div class="section-header">
-        <span class="section-title">最近记录</span>
-        <button style="font-size:13px;color:var(--primary);font-weight:600;" onclick="switchPage('transactions')">查看全部 →</button>
+
+      <!-- 模块2：本月结余 -->
+      <div class="section">
+        <div class="section-header"><span class="section-title">📊 本月结余（${ymNow.slice(5)}月）</span></div>
+        <div style="padding:12px 0;">
+          <div style="font-size:28px;font-weight:700;margin-bottom:12px;color:${s.balance>=0?'var(--green)':'var(--red)'}">${fmt(s.balance)}</div>
+          <div style="display:flex;gap:16px;">
+            <div style="flex:1;background:var(--surface2);border-radius:var(--radius-sm);padding:10px;">
+              <div style="font-size:12px;color:var(--text3);">支出</div>
+              <div style="font-size:18px;font-weight:600;color:var(--red);">${fmt(s.expense)}</div>
+            </div>
+            <div style="flex:1;background:var(--surface2);border-radius:var(--radius-sm);padding:10px;">
+              <div style="font-size:12px;color:var(--text3);">收入</div>
+              <div style="font-size:18px;font-weight:600;color:var(--green);">${fmt(s.income)}</div>
+            </div>
+          </div>
+        </div>
       </div>
-      ${txList}
+
+      <!-- 模块3：本年结余 + 折线图 -->
+      <div class="section">
+        <div class="section-header"><span class="section-title">📈 本年结余（${yearNow}年）</span></div>
+        <div style="padding:12px 0;">
+          <div style="display:flex;gap:16px;margin-bottom:12px;">
+            <div style="flex:1;background:var(--surface2);border-radius:var(--radius-sm);padding:10px;">
+              <div style="font-size:12px;color:var(--text3);">结余</div>
+              <div style="font-size:18px;font-weight:600;color:${yearBalance>=0?'var(--green)':'var(--red)'}">${fmt(yearBalance)}</div>
+            </div>
+            <div style="flex:1;background:var(--surface2);border-radius:var(--radius-sm);padding:10px;">
+              <div style="font-size:12px;color:var(--text3);">总支出</div>
+              <div style="font-size:18px;font-weight:600;color:var(--red);">${fmt(yearExp)}</div>
+            </div>
+            <div style="flex:1;background:var(--surface2);border-radius:var(--radius-sm);padding:10px;">
+              <div style="font-size:12px;color:var(--text3);">总收入</div>
+              <div style="font-size:18px;font-weight:600;color:var(--green);">${fmt(yearInc)}</div>
+            </div>
+          </div>
+          <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:8px;">
+            ${balanceChart}
+          </div>
+        </div>
+      </div>
+
+      <!-- 模块4：负债清单 + 折线图 -->
+      <div class="section">
+        <div class="section-header"><span class="section-title">⚠️ 负债清单</span></div>
+        <div style="padding:12px 0;">
+          <div style="font-size:28px;font-weight:700;color:var(--red);margin-bottom:12px;">${fmt(totalDebt)}</div>
+          <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:8px;margin-bottom:12px;">
+            ${debtChart}
+          </div>
+          ${debtList}
+        </div>
+      </div>
+
+      <!-- 最近记录 -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">📝 最近记录</span>
+          <button style="font-size:13px;color:var(--primary);font-weight:600;" onclick="switchPage('transactions')">查看全部 →</button>
+        </div>
+        ${txList}
+      </div>
+
     </div>`;
 }
 

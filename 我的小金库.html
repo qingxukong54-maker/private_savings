@@ -352,32 +352,85 @@ function getCat(id){
 
 // ===== DATA =====
 let data = {
-  transactions:[], accounts:[...DEFAULT_ACCOUNTS],
-  budgets:{}, customBudgets:[
-    {id:'xiutianke',name:'修添可',emoji:'🔧',amount:300},
-    {id:'xiuweibolu',name:'修微波炉',emoji:'🔧',amount:200},
-    {id:'xiudiannao',name:'修电脑/换电脑',emoji:'💻',amount:2500},
-    {id:'xiushouji',name:'修手机/换手机',emoji:'📱',amount:4000},
-    {id:'chezi_nianjian',name:'车子年检',emoji:'🚗',amount:400},
-    {id:'chezi_tiemo',name:'车子贴膜',emoji:'🚗',amount:2000},
-    {id:'vpn',name:'VPN',emoji:'🌐',amount:30},
-    {id:'zenggaojia',name:'增高架',emoji:'📦',amount:34},
-    {id:'muzhi_tuopan',name:'木质托盘',emoji:'🪵',amount:44},
-    {id:'diannao_zhijia',name:'电脑支架',emoji:'💻',amount:44},
-    {id:'zadai',name:'扎带',emoji:'🔗',amount:10},
-    {id:'shounagui',name:'收纳柜',emoji:'🗄️',amount:70},
-    {id:'zhuomian_shouna',name:'桌面收纳盒',emoji:'📦',amount:27},
-    {id:'baiban_zhi',name:'白板纸',emoji:'📝',amount:26},
-    {id:'bi_bancai',name:'笔+板擦',emoji:'✏️',amount:10},
-  ], settings:{theme:'light'}, version:VERSION
-};
+  transactions:[
+    // 2026-05-27 交易
+    {id:'txn_1748332800001', type:'expense', amount:1132.48, category:'repayment', account:'xiamen_bank', note:'借呗还款', date:'2026-05-27', time:'14:30', createTime:1748332800001},
+    {id:'txn_1748332800002', type:'income',   amount:274.8,   category:'other_inc',  account:'wechat',      note:'许总收款',   date:'2026-05-27', time:'15:00', createTime:1748332800002},
+    {id:'txn_1748332800003', type:'expense', amount:0.22,   category:'other_exp',  account:'wechat',      note:'微信提现手续费', date:'2026-05-27', time:'12:00', createTime:1748332800003},
+    {id:'txn_1748332800004', type:'expense', amount:12.7,   category:'food',       account:'wechat',      note:'午饭',       date:'2026-05-27', time:'12:30', createTime:1748332800004},
+    {id:'txn_1748419200002', type:'expense', amount:1.0,    category:'transport',  account:'wechat',      note:'下班公交',     date:'2026-05-27', time:'18:30', createTime:1748419200002},
+    // 2026-05-28 交易
+    {id:'txn_1748419200001', type:'income',   amount:912.05,  category:'other_inc',  account:'xiamen_bank', note:'俞涛B店退店提现', date:'2026-05-28', time:'09:00', createTime:1748419200001},
+    {id:'txn_1748419200003', type:'expense', amount:11.0,   category:'other_exp',  account:'wechat',      note:'买烟',       date:'2026-05-28', time:'08:00', createTime:1748419200003},
+    {id:'txn_1748419200004', type:'expense', amount:1.0,    category:'transport',  account:'wechat',      note:'上班公交',     date:'2026-05-28', time:'08:30', createTime:1748419200004},
+    {id:'txn_1748419200005', type:'expense', amount:3.5,    category:'food',       account:'wechat',      note:'买水',       date:'2026-05-28', time:'14:00', createTime:1748419200005},
+  ],
+  accounts:[...DEFAULT_ACCOUNTS],
+  budgets:{
+    expense:{},
+    custom:[
+      {id:'xiatian_xie',     name:'买双夏天的鞋', emoji:'👟', amount:40},
+      {id:'xiutianke',       name:'修添可',       emoji:'🔧', amount:300},
+      {id:'xiuweibolu',      name:'修微波炉',     emoji:'🔧', amount:200},
+      {id:'xiudiannao',      name:'修电脑/换电脑', emoji:'💻', amount:2500},
+      {id:'xiushouji',       name:'修手机/换手机', emoji:'📱', amount:4000},
+      {id:'chezi_nianjian',  name:'车子年检',      emoji:'🚗', amount:400},
+      {id:'chezi_tiemo',     name:'车子贴膜',      emoji:'🚗', amount:2000},
+      {id:'vpn',             name:'VPN',          emoji:'🌐', amount:30},
+      {id:'zenggaojia',     name:'增高架',        emoji:'📦', amount:34},
+      {id:'muzhi_tuopan',   name:'木质托盘',      emoji:'🪵', amount:44},
+      {id:'diannao_zhijia', name:'电脑支架',      emoji:'💻', amount:44},
+      {id:'zadai',           name:'扎带',          emoji:'🔗', amount:10},
+      {id:'shounagui',       name:'收纳柜',        emoji:'🗄️', amount:70},
+      {id:'zhuomian_shouna',name:'桌面收纳盒',    emoji:'📦', amount:27},
+      {id:'baiban_zhi',      name:'白板纸',        emoji:'📝', amount:26},
+      {id:'bi_bancai',       name:'笔+板擦',       emoji:'✏️', amount:10},
+    ],
+    debt:[
+      {id:'wechat_repayment',   name:'微信还款',   emoji:'💬', amount:0,    accountId:'wechat'},
+      {id:'alipay_repayment',  name:'支付宝还款', emoji:'🔵', amount:0,    accountId:'alipay'},
+      {id:'xiamen_repayment',  name:'厦门银行还款',emoji:'🏦', amount:0,    accountId:'xiamen_bank'},
+      {id:'banni_repayment',   name:'班尼还款',   emoji:'👤', amount:11000,accountId:'banni'},
+      {id:'zuozuo_repayment',  name:'左左还款',   emoji:'👤', amount:2500, accountId:'zuozuo'},
+      {id:'jiangyue_repayment', name:'江玥还款',   emoji:'👤', amount:1500, accountId:'jiangyue'},
+      {id:'ccb_repayment',     name:'建行信用卡还款',emoji:'💳', amount:1000,accountId:'ccb_card'},
+      {id:'cmb_repayment',     name:'招行信用卡还款',emoji:'💳', amount:50000,accountId:'cmb_card'},
+      {id:'zl_repayment',      name:'招联金融还款',  emoji:'🏦', amount:50000,accountId:'zl_finance'},
+      {id:'zhangyi_repayment', name:'张仪还款',   emoji:'👤', amount:23000,accountId:'zhangyi'},
+      {id:'jiebei_repayment',  name:'借呗还款',   emoji:'💰', amount:6400, accountId:'jiebei'},
+    ]
+  },
+  settings:{theme:'light'}, version:VERSION
+
+};;
 let currentPage = 'home';
 let viewMonth = new Date().toISOString().slice(0,7); // YYYY-MM
 let addType = 'expense'; // expense | income | transfer
 let _editTxId = null; // track editing tx id for type switch
 
 // Load
-try{ const s=localStorage.getItem(STORAGE_KEY); if(s) data=JSON.parse(s); if(!data.accounts) data.accounts=[...DEFAULT_ACCOUNTS]; if(!data.budgets) data.budgets={}; if(!data.customBudgets) data.customBudgets=[]; data.version=VERSION; }catch(e){}
+try{
+  const s=localStorage.getItem(STORAGE_KEY);
+  if(s){
+    data=JSON.parse(s);
+    // v2->v3 数据迁移
+    if(data.budgets && !data.budgets.expense){
+      // 旧结构：budgets={catId:amount}, customBudgets=[...]
+      data.budgets = {
+        expense: data.budgets || {},
+        custom: (data.customBudgets||[]).filter(b=>b.type!=='debt'),
+        debt: (data.customBudgets||[]).filter(b=>b.type==='debt')
+      };
+      delete data.customBudgets;
+    }
+    if(!data.budgets) data.budgets={expense:{},custom:[],debt:[]};
+    if(!data.budgets.expense) data.budgets.expense={};
+    if(!data.budgets.custom) data.budgets.custom=[];
+    if(!data.budgets.debt) data.budgets.debt=[];
+  }
+  if(!data.accounts) data.accounts=[...DEFAULT_ACCOUNTS];
+  data.version=VERSION;
+}catch(e){}
 // 启动时自动添加缺失的负债账户
 (function(){
   const LIABILITIES = [
@@ -739,12 +792,13 @@ function getBudgetInfo(){
   const catSpent = {};
   expTxns.forEach(t=>{ if(!catSpent[t.category]) catSpent[t.category]=0; catSpent[t.category]+=t.amount; });
   let totalBudget=0, totalSpent=0;
-  Object.entries(data.budgets).forEach(([catId,budget])=>{
+  // 分类预算
+  Object.entries(data.budgets.expense||{}).forEach(([catId,budget])=>{
     totalBudget+=budget;
     totalSpent+=(catSpent[catId]||0);
   });
-  // 自定义预算项 - 只统计开支预算
-  (data.customBudgets||[]).forEach(b=>{ if(b.type!=='debt') totalBudget+=b.amount; });
+  // 自定义开支预算
+  (data.budgets.custom||[]).forEach(b=>{ totalBudget+=b.amount; });
   return {totalBudget, spent:totalSpent};
 }
 
@@ -775,35 +829,34 @@ function renderBudget(){
 
   // 自定义开支预算
   let customExpenseList = '';
-  (data.customBudgets||[]).filter(b=>b.type!=='debt').forEach((b,i)=>{
+  (data.budgets.custom||[]).forEach((b,i)=>{
     customExpenseList += `<div class="budget-item">
       <div class="budget-cat" style="background:var(--blue-light)">${b.emoji||'📌'}</div>
       <div class="budget-info">
         <div class="budget-cat-name">${b.name}</div>
         <div class="budget-amounts" style="font-size:14px;font-weight:600;">预算 <span style="color:var(--primary-dark)">${fmt(b.amount)}</span></div>
       </div>
-      <button class="budget-edit" onclick="editCustomBudget(${i})">✏️</button>
-      <button class="budget-edit" onclick="deleteCustomBudget(${i})" style="color:var(--red);">🗑️</button>
+      <button class="budget-edit" onclick="editCustomBudget('custom',${i})">✏️</button>
+      <button class="budget-edit" onclick="deleteCustomBudget('custom',${i})" style="color:var(--red);">🗑️</button>
     </div>`;
   });
 
   // 负债预算（还款计划）
   let debtList = '';
-  (data.customBudgets||[]).filter(b=>b.type==='debt').forEach((b,i)=>{
-    const realIdx = data.customBudgets.indexOf(b);
+  (data.budgets.debt||[]).forEach((b,i)=>{
     debtList += `<div class="budget-item">
       <div class="budget-cat" style="background:var(--red-light)">${b.emoji||'💰'}</div>
       <div class="budget-info">
         <div class="budget-cat-name">${b.name}</div>
         <div class="budget-amounts" style="font-size:14px;font-weight:600;">待还 <span style="color:var(--red)">${fmt(b.amount)}</span></div>
       </div>
-      <button class="budget-edit" onclick="editCustomBudget(${realIdx})">✏️</button>
-      <button class="budget-edit" onclick="deleteCustomBudget(${realIdx})" style="color:var(--red);">🗑️</button>
+      <button class="budget-edit" onclick="editCustomBudget('debt',${i})">✏️</button>
+      <button class="budget-edit" onclick="deleteCustomBudget('debt',${i})" style="color:var(--red);">🗑️</button>
     </div>`;
   });
 
   if(!budgetList && !customExpenseList) budgetList = `<div class="empty"><div class="icon">🎯</div><p>还没有设置开支预算<br><small>点击分类旁的 + 号添加</small></p></div>`;
-  if(!debtList) debtList = `<div style="text-align:center;padding:12px;color:var(--text3);font-size:13px;">暂无负债预算</div>`;
+  if(!debtList) debtList = `<div style="text-align:center;padding:12px;color:var(--text3);font-size:13px;">暂无负债预算，点击上方「+ 添加」</div>`;
 
   // Category selector for adding budget
   let catOptions = '';
@@ -848,7 +901,7 @@ function renderBudget(){
     </div>`;
 
   if(!customExpenseList){
-    html += `<div class="section"><div class="section-header"><span class="section-title">📌 自定义开支预算</span><button style="font-size:13px;color:var(--primary);font-weight:600;" onclick="addCustomBudget()">+ 添加</button></div><div style="text-align:center;padding:12px;color:var(--text3);font-size:13px;">暂无自定义开支预算</div></div>`;
+    html += `<div class="section"><div class="section-header"><span class="section-title">📌 自定义开支预算</span><button style="font-size:13px;color:var(--primary);font-weight:600;" onclick="addCustomBudget()">+ 添加</button></div><div style="text-align:center;padding:12px;color:var(--text3);font-size:13px;">暂无自定义开支预算，点击上方「+ 添加」</div></div>`;
   }
 
   if(catOptions){
@@ -860,68 +913,63 @@ function renderBudget(){
 
 function setBudget(catId){
   const cat = getCat(catId);
-  const current = data.budgets[catId] || 0;
+  const current = data.budgets.expense[catId] || 0;
   const val = prompt(`${cat.emoji} ${cat.name}\n设置月度预算（元）：`, current>0?current:'');
   if(val===null) return;
   const num = parseFloat(val);
   if(isNaN(num)||num<0) return;
-  if(num===0) delete data.budgets[catId];
-  else data.budgets[catId] = num;
+  if(num===0) delete data.budgets.expense[catId];
+  else data.budgets.expense[catId] = num;
   saveData(); renderPage();
 }
 
 function addCustomBudget(){
   const name = prompt('预算名称：');
   if(!name||!name.trim()) return;
-  const type = prompt('预算类型：输入 1 为开支预算，输入 2 为负债预算（还款计划）', '1');
-  const budgetType = (type==='2')?'debt':'expense';
   const amountStr = prompt('预算金额（元）：');
   if(amountStr===null) return;
   const amount = parseFloat(amountStr);
   if(isNaN(amount)||amount<=0) return;
   const emojis = ['📌','🔧','🚗','📱','💻','🏠','🎉','📦','💊','🎯'];
   const emoji = prompt('选择 emoji（可选，直接回车跳过）：', emojis[Math.floor(Math.random()*emojis.length)]) || '📌';
-  if(!data.customBudgets) data.customBudgets = [];
-  data.customBudgets.push({id: Date.now().toString(36), name: name.trim(), emoji, amount, type:budgetType});
+  if(!data.budgets.custom) data.budgets.custom = [];
+  data.budgets.custom.push({id: Date.now().toString(36), name: name.trim(), emoji, amount});
   saveData(); renderPage();
 }
 
 function addDebtBudget(){
-  const name = prompt('负债/还款名称（如：借呗还款）：');
+  const name = prompt('负债/还款名称（如：微信还款）：');
   if(!name||!name.trim()) return;
   const amountStr = prompt('待还金额（元）：');
   if(amountStr===null) return;
   const amount = parseFloat(amountStr);
   if(isNaN(amount)||amount<=0) return;
   const emoji = prompt('选择 emoji（可选，直接回车跳过）：', '💰') || '💰';
-  if(!data.customBudgets) data.customBudgets = [];
-  data.customBudgets.push({id: Date.now().toString(36), name: name.trim(), emoji, amount, type:'debt'});
+  if(!data.budgets.debt) data.budgets.debt = [];
+  data.budgets.debt.push({id: Date.now().toString(36), name: name.trim(), emoji, amount});
   saveData(); renderPage();
 }
 
-function editCustomBudget(idx){
-  const b = data.customBudgets[idx];
+function editCustomBudget(type, idx){
+  const arr = type==='debt' ? data.budgets.debt : data.budgets.custom;
+  const b = arr[idx];
   if(!b) return;
   const name = prompt('预算名称：', b.name);
   if(name===null) return;
-  const typeChoices = '预算类型：输入 1 为开支预算，输入 2 为负债预算（还款计划）\n当前类型：' + (b.type==='debt'?'负债预算':'开支预算');
-  const type = prompt(typeChoices, b.type==='debt'?'2':'1');
-  if(type===null) return;
-  const budgetType = (type==='2')?'debt':'expense';
-  const amountStr = prompt('预算金额（元）：', b.amount);
+  const amountStr = prompt('金额（元）：', b.amount);
   if(amountStr===null) return;
   const amount = parseFloat(amountStr);
   if(isNaN(amount)||amount<=0) return;
   b.name = name.trim() || b.name;
   b.amount = amount;
-  b.type = budgetType;
   saveData(); renderPage();
 }
 
-function deleteCustomBudget(idx){
-  const b = data.customBudgets[idx];
+function deleteCustomBudget(type, idx){
+  const arr = type==='debt' ? data.budgets.debt : data.budgets.custom;
+  const b = arr[idx];
   if(!b || !confirm(`删除预算「${b.name}」？`)) return;
-  data.customBudgets.splice(idx, 1);
+  arr.splice(idx, 1);
   saveData(); renderPage();
 }
 

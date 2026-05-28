@@ -391,27 +391,10 @@ let _editTxId = null; // track editing tx id for type switch
 
 // Load
 try{ const s=localStorage.getItem(STORAGE_KEY); if(s) data=JSON.parse(s); if(!data.accounts) data.accounts=[...DEFAULT_ACCOUNTS]; if(!data.budgets) data.budgets={}; if(!data.customBudgets) data.customBudgets=[]; data.version=VERSION; }catch(e){}
-// 启动时自动添加缺失的负债账户
-(function(){
-  const LIABILITIES = [
-    {id:'banni',   name:'班尼',      emoji:'👤',balance:-11000},
-    {id:'zuozuo',  name:'左左',      emoji:'👤',balance:-2500},
-    {id:'jiangyue', name:'江玥',      emoji:'👤',balance:-1500},
-    {id:'ccb_card', name:'建行信用卡', emoji:'💳',balance:-1000},
-    {id:'cmb_card', name:'招行信用卡', emoji:'💳',balance:-50000},
-    {id:'zl_finance',name:'招联金融',  emoji:'🏦',balance:-50000},
-    {id:'zhangyi', name:'张仪',      emoji:'👤',balance:-23000},
-    {id:'jiebei',   name:'借呗',      emoji:'💰',balance:-6400},
-  ];
-  let changed=false;
-  if(!data.accounts) data.accounts=[...DEFAULT_ACCOUNTS];
-  LIABILITIES.forEach(a=>{
-    if(!data.accounts.find(e=>e.id===a.id)){
-      data.accounts.push({...a}); changed=true;
-    }
-  });
-  if(changed){ saveData(); }
-})();
+// 一次性清理旧的负债账户（已从IIFE改为直接过滤，用户不再需要这些账户）
+const OLD_LIABILITY_IDS = new Set(['banni','zuozuo','jiangyue','ccb_card','cmb_card','zl_finance','zhangyi','jiebei']);
+const hadOld = data.accounts && data.accounts.some(a=>OLD_LIABILITY_IDS.has(a.id));
+if(hadOld){ data.accounts = data.accounts.filter(a=>!OLD_LIABILITY_IDS.has(a.id)); saveData(); }
 
 function saveData(){
   data.version = VERSION;

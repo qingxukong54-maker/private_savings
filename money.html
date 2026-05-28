@@ -323,7 +323,7 @@ const EXPENSE_CATS = [
   {id:'comm',name:'通讯',emoji:'📱',color:'#3B82F6'},
   {id:'sport',name:'运动',emoji:'⚽',color:'#10B981'},
   {id:'travel',name:'旅行',emoji:'✈️',color:'#06B6D4'},
-  {id:'insurance',name:'保险',emoji:'🛡️',color:'#64748B'},
+  {id:'insurance',name:'还款',emoji:'💰',color:'#E11D48'},
   {id:'other_exp',name:'其他',emoji:'📦',color:'#6B7280'}
 ];
 
@@ -340,10 +340,9 @@ const INCOME_CATS = [
 ];
 
 const DEFAULT_ACCOUNTS = [
-  {id:'cash',name:'现金',emoji:'💵',balance:0},
   {id:'wechat',name:'微信',emoji:'💚',balance:0},
   {id:'alipay',name:'支付宝',emoji:'🔵',balance:0},
-  {id:'bank',name:'银行卡',emoji:'🏦',balance:0}
+  {id:'xiamen_bank',name:'厦门银行',emoji:'🏦',balance:0}
 ];
 
 function getCat(id){
@@ -352,8 +351,49 @@ function getCat(id){
 
 // ===== DATA =====
 let data = {
-  transactions:[], accounts:[...DEFAULT_ACCOUNTS],
-  budgets:{}, customBudgets:[
+  transactions:
+  [
+    {id:'txn_1779597879219',type:'expense',amount:11,category:'other_exp',account:'alipay',note:'买烟',date:'2026-05-24'},
+    {id:'txn_1779610703780',type:'expense',amount:13.5,category:'food',account:'alipay',note:'晚饭',date:'2026-05-24'},
+    {id:'txn_1779670926373',type:'expense',amount:1,category:'transport',account:'alipay',note:'上班公交',date:'2026-05-25'},
+    {id:'txn_1779676141729',type:'expense',amount:3.5,category:'food',account:'alipay',note:'买可乐',date:'2026-05-25'},
+    {id:'txn_1779698778226',type:'expense',amount:11,category:'other_exp',account:'alipay',note:'买烟',date:'2026-05-25'},
+    {id:'txn_1779704428137',type:'expense',amount:0.9,category:'transport',account:'alipay',note:'下班公交',date:'2026-05-25'},
+    {id:'txn_1779757905533',type:'expense',amount:0.9,category:'transport',account:'alipay',note:'上班公交',date:'2026-05-26'},
+    {id:'txn_1779761528759',type:'expense',amount:3.5,category:'food',account:'alipay',note:'买水',date:'2026-05-26'},
+    {id:'txn_1779765442803',type:'income',amount:225.41,category:'business',account:'wechat',note:'加拿大采购-收许总款',date:'2026-05-26'},
+    {id:'txn_1779765442804',type:'expense',amount:171,category:'business',account:'wechat',note:'加拿大采购-付老黄',date:'2026-05-26'},
+    {id:'txn_1779785256511',type:'income',amount:1444.51,category:'invest',account:'alipay',note:'杨秦C店退店提现',date:'2026-05-26'},
+    {id:'txn_1779785256512',type:'expense',amount:1500,category:'other_exp',account:'alipay',note:'转账给江玥',date:'2026-05-26'},
+    {id:'txn_1779786713185',type:'expense',amount:0.03,category:'other_exp',account:'wechat',note:'微信提现手续费',date:'2026-05-26',time:'17:10'},
+    {id:'txn_1779793733806',type:'expense',amount:11,category:'other_exp',account:'wechat',note:'买烟',date:'2026-05-26',time:'19:08'},
+    {id:'txn_1779794374404',type:'expense',amount:1,category:'other_exp',account:'xiamen_bank',note:'回家车费',date:'2026-05-26',time:'19:19'},
+    {id:'txn_1779846969830_ly6s',type:'expense',amount:1,category:'transport',account:'xiamen_bank',note:'上班打车',date:'2026-05-27'},
+    {id:'txn_1748332800001',type:'expense',amount:1132.48,category:'other_exp',account:'xiamen_bank',note:'借呗还款',date:'2026-05-27',time:'14:30'},
+    {id:'txn_1748332800002',type:'income',amount:274.8,category:'business',account:'wechat',note:'许总收款',date:'2026-05-27',time:'14:35'},
+    {id:'txn_1748332800003a',type:'expense',amount:274.8,category:'transfer',account:'wechat',note:'微信提现至厦门银行',date:'2026-05-27',time:'14:36'},
+    {id:'txn_1748332800003b',type:'income',amount:274.8,category:'transfer',account:'xiamen_bank',note:'微信提现存入',date:'2026-05-27',time:'14:36'},
+    {id:'txn_1748332800004',type:'expense',amount:0.22,category:'other_exp',account:'wechat',note:'微信提现手续费',date:'2026-05-27',time:'14:36'},
+    {id:'txn_1748332800005',type:'expense',amount:12.7,category:'food',account:'wechat',note:'午饭',date:'2026-05-27',time:'12:00'},
+    {id:'txn_1748332800006',type:'income',amount:912.05,category:'business',account:'xiamen_bank',note:'俞涛B店退店提现',date:'2026-05-27',time:'14:40'}
+  ],
+  accounts:
+  [
+    {id:'wechat',name:'微信',emoji:'💚',balance:6.51},
+    {id:'alipay',name:'支付宝',emoji:'🔵',balance:0},
+    {id:'banni',name:'班尼',emoji:'👤',balance:-11000},
+    {id:'zuozuo',name:'左左',emoji:'👤',balance:-2500},
+    {id:'ccb_card',name:'建行信用卡',emoji:'💳',balance:-1000},
+    {id:'cmb_card',name:'招行信用卡',emoji:'💳',balance:-50000},
+    {id:'zl_finance',name:'招联金融',emoji:'🏦',balance:-50000},
+    {id:'zhangyi',name:'张仪',emoji:'👤',balance:-23000},
+    {id:'jiebei',name:'借呗',emoji:'💰',balance:-5267.52},
+    {id:'ccb_mortgage',name:'建行房贷',emoji:'🏠',balance:-8000},
+    {id:'xiamen_bank',name:'厦门银行',emoji:'🏦',balance:55.57}
+  ],
+  budgets:{},
+  customBudgets:
+  [
     {id:'xiutianke',name:'修添可',emoji:'🔧',amount:300},
     {id:'xiuweibolu',name:'修微波炉',emoji:'🔧',amount:200},
     {id:'xiudiannao',name:'修电脑/换电脑',emoji:'💻',amount:2500},
@@ -368,8 +408,10 @@ let data = {
     {id:'shounagui',name:'收纳柜',emoji:'🗄️',amount:70},
     {id:'zhuomian_shouna',name:'桌面收纳盒',emoji:'📦',amount:27},
     {id:'baiban_zhi',name:'白板纸',emoji:'📝',amount:26},
-    {id:'bi_bancai',name:'笔+板擦',emoji:'✏️',amount:10},
-  ], settings:{theme:'light'}, version:VERSION
+    {id:'bi_bancai',name:'笔+板擦',emoji:'✏️',amount:10}
+  ],
+  settings:{theme:'light'},
+  version:1
 };
 let currentPage = 'home';
 let viewMonth = new Date().toISOString().slice(0,7); // YYYY-MM

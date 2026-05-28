@@ -299,6 +299,465 @@ input:focus,textarea:focus,select:focus{border-color:var(--primary);}
 <div id="syncIndicator" class="sync-indicator"></div>
 
 <script>
+// 离线后备数据
+const FALLBACK_DATA = {
+  "version": 1,
+  "accounts": [
+    {
+      "id": "wechat",
+      "name": "微信",
+      "emoji": "💚",
+      "balance": 16.81
+    },
+    {
+      "id": "alipay",
+      "name": "支付宝",
+      "emoji": "🔵",
+      "balance": 0
+    },
+    {
+      "id": "xiamen_bank",
+      "name": "厦门银行",
+      "emoji": "🏦",
+      "balance": 28.97
+    }
+  ],
+  "transactions": [
+    {
+      "id": "txn_1779597879219",
+      "type": "expense",
+      "amount": 11,
+      "category": "other_exp",
+      "account": "alipay",
+      "note": "买烟",
+      "date": "2026-05-24"
+    },
+    {
+      "id": "txn_1779610703780",
+      "type": "expense",
+      "amount": 13.5,
+      "category": "food",
+      "account": "alipay",
+      "note": "晚饭",
+      "date": "2026-05-24"
+    },
+    {
+      "id": "txn_1779670926373",
+      "type": "expense",
+      "amount": 1,
+      "category": "transport",
+      "account": "alipay",
+      "note": "上班公交",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "txn_1779676141729",
+      "type": "expense",
+      "amount": 3.5,
+      "category": "food",
+      "account": "alipay",
+      "note": "买可乐",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "txn_1779698778226",
+      "type": "expense",
+      "amount": 11,
+      "category": "other_exp",
+      "account": "alipay",
+      "note": "买烟",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "txn_1779704428137",
+      "type": "expense",
+      "amount": 0.9,
+      "category": "transport",
+      "account": "alipay",
+      "note": "下班公交",
+      "date": "2026-05-25"
+    },
+    {
+      "id": "txn_1779757905533",
+      "type": "expense",
+      "amount": 0.9,
+      "category": "transport",
+      "account": "alipay",
+      "note": "上班公交",
+      "date": "2026-05-26"
+    },
+    {
+      "id": "txn_1779761528759",
+      "type": "expense",
+      "amount": 3.5,
+      "category": "food",
+      "account": "alipay",
+      "note": "买水",
+      "date": "2026-05-26"
+    },
+    {
+      "id": "txn_1779765442803",
+      "type": "income",
+      "amount": 225.41,
+      "category": "business",
+      "account": "wechat",
+      "note": "加拿大采购-收许总款",
+      "date": "2026-05-26"
+    },
+    {
+      "id": "txn_1779765442804",
+      "type": "expense",
+      "amount": 171,
+      "category": "business",
+      "account": "wechat",
+      "note": "加拿大采购-付老黄",
+      "date": "2026-05-26"
+    },
+    {
+      "id": "txn_1779785256511",
+      "type": "income",
+      "amount": 1444.51,
+      "category": "invest",
+      "account": "alipay",
+      "note": "杨秦C店退店提现",
+      "date": "2026-05-26"
+    },
+    {
+      "id": "txn_1779785256512",
+      "type": "expense",
+      "amount": 1500,
+      "category": "business",
+      "account": "alipay",
+      "note": "转账给江玥",
+      "date": "2026-05-26"
+    },
+    {
+      "id": "txn_1779786713185",
+      "type": "expense",
+      "amount": 0.03,
+      "category": "other_exp",
+      "account": "wechat",
+      "note": "微信提现手续费",
+      "date": "2026-05-26",
+      "time": "17:10"
+    },
+    {
+      "id": "txn_1779793733806",
+      "type": "expense",
+      "amount": 11,
+      "category": "other_exp",
+      "account": "wechat",
+      "note": "买烟",
+      "date": "2026-05-26",
+      "time": "19:08"
+    },
+    {
+      "id": "txn_1779794374404",
+      "type": "expense",
+      "amount": 1,
+      "category": "transport",
+      "account": "xiamen_bank",
+      "note": "回家车费",
+      "date": "2026-05-26",
+      "time": "19:19"
+    },
+    {
+      "id": "txn_1779846969830_ly6s",
+      "type": "expense",
+      "amount": 1,
+      "category": "transport",
+      "account": "xiamen_bank",
+      "note": "上班打车",
+      "date": "2026-05-27"
+    },
+    {
+      "id": "txn_1748332800001",
+      "type": "expense",
+      "amount": 1132.48,
+      "category": "insurance",
+      "account": "xiamen_bank",
+      "note": "借呗还款",
+      "date": "2026-05-27",
+      "time": "14:30"
+    },
+    {
+      "id": "txn_1748332800002",
+      "type": "income",
+      "amount": 274.8,
+      "category": "business",
+      "account": "wechat",
+      "note": "许总收款",
+      "date": "2026-05-27",
+      "time": "14:35"
+    },
+    {
+      "id": "txn_1748332800003a",
+      "type": "expense",
+      "amount": 274.8,
+      "category": "transfer",
+      "account": "wechat",
+      "note": "微信提现至厦门银行",
+      "date": "2026-05-27",
+      "time": "14:36"
+    },
+    {
+      "id": "txn_1748332800003b",
+      "type": "income",
+      "amount": 274.8,
+      "category": "transfer",
+      "account": "xiamen_bank",
+      "note": "微信提现存入",
+      "date": "2026-05-27",
+      "time": "14:36"
+    },
+    {
+      "id": "txn_1748332800004",
+      "type": "expense",
+      "amount": 0.22,
+      "category": "other_exp",
+      "account": "wechat",
+      "note": "微信提现手续费",
+      "date": "2026-05-27",
+      "time": "14:36"
+    },
+    {
+      "id": "txn_1748332800005",
+      "type": "expense",
+      "amount": 12.7,
+      "category": "food",
+      "account": "wechat",
+      "note": "午饭",
+      "date": "2026-05-27",
+      "time": "12:00"
+    },
+    {
+      "id": "txn_1748332800006",
+      "type": "income",
+      "amount": 912.05,
+      "category": "business",
+      "account": "xiamen_bank",
+      "note": "俞涛B店退店提现",
+      "date": "2026-05-27",
+      "time": "14:40"
+    },
+    {
+      "id": "txn_17799354393101",
+      "type": "expense",
+      "amount": 1,
+      "category": "transport",
+      "account": "wechat",
+      "note": "下班公交",
+      "date": "2026-05-27",
+      "time": "18:00"
+    },
+    {
+      "id": "txn_17799354393102",
+      "type": "expense",
+      "amount": 11,
+      "category": "other_exp",
+      "account": "wechat",
+      "note": "买烟",
+      "date": "2026-05-28",
+      "time": "09:00"
+    },
+    {
+      "id": "txn_17799354393103",
+      "type": "expense",
+      "amount": 1,
+      "category": "transport",
+      "account": "wechat",
+      "note": "上班公交",
+      "date": "2026-05-28",
+      "time": "08:30"
+    },
+    {
+      "id": "txn_1779939269849",
+      "type": "expense",
+      "amount": 3.5,
+      "category": "food",
+      "account": "wechat",
+      "note": "买水",
+      "date": "2026-05-28",
+      "time": "11:30"
+    }
+  ],
+  "budgets": {},
+  "settings": {
+    "theme": "light"
+  },
+  "customBudgets": [
+    {
+      "id": "xiutianke",
+      "name": "修添可",
+      "emoji": "🔧",
+      "amount": 300,
+      "type": "expense"
+    },
+    {
+      "id": "xiuweibolu",
+      "name": "修微波炉",
+      "emoji": "🔧",
+      "amount": 200,
+      "type": "expense"
+    },
+    {
+      "id": "xiudiannao",
+      "name": "修电脑/换电脑",
+      "emoji": "💻",
+      "amount": 2500,
+      "type": "expense"
+    },
+    {
+      "id": "xiushouji",
+      "name": "修手机/换手机",
+      "emoji": "📱",
+      "amount": 4000,
+      "type": "expense"
+    },
+    {
+      "id": "chezi_nianjian",
+      "name": "车子年检",
+      "emoji": "🚗",
+      "amount": 400,
+      "type": "expense"
+    },
+    {
+      "id": "chezi_tiemo",
+      "name": "车子贴膜",
+      "emoji": "🚗",
+      "amount": 2000,
+      "type": "expense"
+    },
+    {
+      "id": "vpn",
+      "name": "VPN",
+      "emoji": "🌐",
+      "amount": 28,
+      "type": "expense"
+    },
+    {
+      "id": "zenggaojia",
+      "name": "增高架",
+      "emoji": "📦",
+      "amount": 34,
+      "type": "expense"
+    },
+    {
+      "id": "muzhi_tuopan",
+      "name": "木质托盘",
+      "emoji": "🪵",
+      "amount": 44,
+      "type": "expense"
+    },
+    {
+      "id": "diannao_zhijia",
+      "name": "电脑支架",
+      "emoji": "💻",
+      "amount": 44,
+      "type": "expense"
+    },
+    {
+      "id": "zadai",
+      "name": "扎带",
+      "emoji": "🔗",
+      "amount": 10,
+      "type": "expense"
+    },
+    {
+      "id": "shounagui",
+      "name": "收纳柜",
+      "emoji": "🗄️",
+      "amount": 70,
+      "type": "expense"
+    },
+    {
+      "id": "zhuomian_shouna",
+      "name": "桌面收纳盒",
+      "emoji": "📦",
+      "amount": 27,
+      "type": "expense"
+    },
+    {
+      "id": "baiban_zhi",
+      "name": "白板纸",
+      "emoji": "📝",
+      "amount": 26,
+      "type": "expense"
+    },
+    {
+      "id": "bi_bancai",
+      "name": "笔+板擦",
+      "emoji": "✏️",
+      "amount": 10,
+      "type": "expense"
+    },
+    {
+      "id": "xiatian_xie",
+      "name": "买双夏天的鞋",
+      "amount": 40,
+      "emoji": "👟",
+      "type": "expense"
+    },
+    {
+      "id": "banni_huankuan",
+      "name": "班尼还款",
+      "amount": 11000,
+      "emoji": "💰",
+      "type": "debt"
+    },
+    {
+      "id": "zuozuo_huankuan",
+      "name": "左左还款",
+      "amount": 2500,
+      "emoji": "💰",
+      "type": "debt"
+    },
+    {
+      "id": "ccb_card_huankuan",
+      "name": "建行信用卡还款",
+      "amount": 1000,
+      "emoji": "💰",
+      "type": "debt"
+    },
+    {
+      "id": "cmb_card_huankuan",
+      "name": "招行信用卡还款",
+      "amount": 50000,
+      "emoji": "💰",
+      "type": "debt"
+    },
+    {
+      "id": "zl_finance_huankuan",
+      "name": "招联金融还款",
+      "amount": 50000,
+      "emoji": "💰",
+      "type": "debt"
+    },
+    {
+      "id": "zhangyi_huankuan",
+      "name": "张仪还款",
+      "amount": 23000,
+      "emoji": "💰",
+      "type": "debt"
+    },
+    {
+      "id": "jiebei_huankuan",
+      "name": "借呗还款",
+      "amount": 5267.52,
+      "emoji": "💰",
+      "type": "debt"
+    },
+    {
+      "id": "ccb_mortgage_huankuan",
+      "name": "建行房贷还款",
+      "amount": 8000,
+      "emoji": "💰",
+      "type": "debt"
+    }
+  ]
+};
+
+
 const STORAGE_KEY = 'money_app_data';
 const CLOUD_KEY = 'money_cloud_config';
 const VERSION = 1;
@@ -814,14 +1273,15 @@ function renderBudget(){
   let debtList = '';
   (data.customBudgets||[]).forEach((b,i)=>{
     if(b.type=='debt'){
+      const realIdx = data.customBudgets.indexOf(b);
       debtList += '<div class="budget-item">' +
         '<div class="budget-cat" style="background:var(--red-light)">' + (b.emoji||'💰') + '</div>' +
         '<div class="budget-info">' +
           '<div class="budget-cat-name">' + b.name + '</div>' +
           '<div class="budget-amounts" style="font-size:14px;font-weight:600;">待还 <span style="color:var(--red)">' + fmt(b.amount) + '</span></div>' +
         '</div>' +
-        '<button class="budget-edit" onclick="editCustomBudget(' + i + ')">✏️</button>' +
-        '<button class="budget-edit" onclick="deleteCustomBudget(' + i + ')" style="color:var(--red);">🗑️</button>' +
+        '<button class="budget-edit" onclick="editCustomBudget(' + realIdx + ')">✏️</button>' +
+        '<button class="budget-edit" onclick="deleteCustomBudget(' + realIdx + ')" style="color:var(--red);">🗑️</button>' +
       '</div>';
     }
   });
@@ -871,12 +1331,32 @@ function renderBudget(){
     debtList +
   '</div>';
 
+  if(customExpenseList){
+    // already added
+  } else {
+    // already added above
+  }
+
   if(catOptions){
     html += '<div class="section"><div class="section-header"><span class="section-title">添加分类预算</span></div><div class="cat-grid">' + catOptions + '</div></div>';
   }
 
   return html;
 }
+
+function addDebtBudget(){
+  const name = prompt('负债/还款名称（如：借呗还款）：');
+  if(!name||!name.trim()) return;
+  const amountStr = prompt('待还金额（元）：');
+  if(amountStr===null) return;
+  const amount = parseFloat(amountStr);
+  if(isNaN(amount)||amount<=0) return;
+  const emoji = prompt('选择 emoji（可选，直接回车跳过）：', '💰') || '💰';
+  if(!data.customBudgets) data.customBudgets = [];
+  data.customBudgets.push({id: Date.now().toString(36), name: name.trim(), emoji, amount, type:'debt'});
+  saveData(); renderPage();
+}
+
 
 
 function addDebtBudget(){

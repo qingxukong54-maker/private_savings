@@ -323,7 +323,7 @@ const EXPENSE_CATS = [
   {id:'comm',name:'通讯',emoji:'📱',color:'#3B82F6'},
   {id:'sport',name:'运动',emoji:'⚽',color:'#10B981'},
   {id:'travel',name:'旅行',emoji:'✈️',color:'#06B6D4'},
-  {id:'insurance',name:'保险',emoji:'🛡️',color:'#64748B'},
+  {id:'repayment',name:'还款',emoji:'🛡️',color:'#64748B'},
   {id:'other_exp',name:'其他',emoji:'📦',color:'#6B7280'}
 ];
 
@@ -340,10 +340,10 @@ const INCOME_CATS = [
 ];
 
 const DEFAULT_ACCOUNTS = [
-  {id:'cash',name:'现金',emoji:'💵',balance:0},
-  {id:'wechat',name:'微信',emoji:'💚',balance:0},
+  {id:'wechat',name:'微信',emoji:'💚',balance:16.81},
   {id:'alipay',name:'支付宝',emoji:'🔵',balance:0},
-  {id:'bank',name:'银行卡',emoji:'🏦',balance:0}
+  {id:'xiamen_bank',name:'厦门银行',emoji:'🏦',balance:28.97},
+  {id:'cash',name:'现金',emoji:'💵',balance:0}
 ];
 
 function getCat(id){
@@ -381,6 +381,8 @@ let data = {
     {id:'zhuomian_shouna',name:'桌面收纳盒',emoji:'📦',amount:27},
     {id:'baiban_zhi',name:'白板纸',emoji:'📝',amount:26},
     {id:'bi_bancai',name:'笔+板擦',emoji:'✏️',amount:10},
+  ,
+    {id:'repay_借呗还款',name:'借呗还款',emoji:'💳',amount:1132.48,type:'debt'}
   ], settings:{theme:'light'}, version:VERSION
 };
 let currentPage = 'home';

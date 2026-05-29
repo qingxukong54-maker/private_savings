@@ -1175,14 +1175,14 @@ async function connectCloud(){
   showSync('正在连接...');
   try{
     let finalGistId = gistId;
-    const headers = {'Authorization':'Bearer '+token,'Content-Type':'application/json'};
+    const headers = {'Authorization':'token '+token,'Content-Type':'application/json'};
     if(!finalGistId){
       const res = await fetch(GIST_API,{method:'POST',headers,body:JSON.stringify({description:'MyMoney Cloud Sync',public:false,files:{'money-data.json':{content:JSON.stringify(data)}}})});
       if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.message||'创建失败: '+res.status);}
       const gist = await res.json();
       finalGistId = gist.id;
     } else {
-      const res = await fetch(GIST_API+'/'+finalGistId,{headers:{'Authorization':'Bearer '+token}});
+      const res = await fetch(GIST_API+'/'+finalGistId,{headers:{'Authorization':'token '+token}});
       if(!res.ok) throw new Error('Gist 不存在或 Token 无权限');
     }
     cloudConfig = {token,gistId:finalGistId};
@@ -1208,7 +1208,7 @@ async function updateCloudConfig(){
   if(!token||!gistId){ showSync('请填写完整',3000,true); return; }
   showSync('正在验证...');
   try{
-    const res = await fetch(GIST_API+'/'+gistId,{headers:{'Authorization':'Bearer '+token}});
+    const res = await fetch(GIST_API+'/'+gistId,{headers:{'Authorization':'token '+token}});
     if(!res.ok) throw new Error('Gist 不存在或 Token 无权限');
     cloudConfig = {token, gistId};
     localStorage.setItem(CLOUD_KEY,JSON.stringify(cloudConfig));

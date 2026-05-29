@@ -1225,12 +1225,12 @@ function cloudSave(){
   if(cloudSaveTimer) clearTimeout(cloudSaveTimer);
   cloudSaveTimer=setTimeout(async()=>{
     try{
-      const getRes=await fetch(GIST_API+'/'+cloudConfig.gistId,{headers:{'Authorization':'Bearer '+cloudConfig.token}});
+      const getRes=await fetch(GIST_API+'/'+cloudConfig.gistId,{headers:{'Authorization':'token '+cloudConfig.token}});
       if(!getRes.ok)return;
       const gist=await getRes.json();
       await fetch(GIST_API+'/'+cloudConfig.gistId,{
         method:'PATCH',
-        headers:{'Authorization':'Bearer '+cloudConfig.token,'Content-Type':'application/json'},
+        headers:{'Authorization':'token '+cloudConfig.token,'Content-Type':'application/json'},
         body:JSON.stringify({files:{'money-data.json':{content:JSON.stringify(data)}}})
       });
       showSync('已同步 ✓',2000);
@@ -1243,7 +1243,7 @@ async function cloudLoad(silent=false){
   try{
     if(!silent) showSync('正在拉取...');
     cloudLoading=true;
-    const res=await fetch(GIST_API+'/'+cloudConfig.gistId,{headers:{'Authorization':'Bearer '+cloudConfig.token}});
+    const res=await fetch(GIST_API+'/'+cloudConfig.gistId,{headers:{'Authorization':'token '+cloudConfig.token}});
     if(res.ok){
       const gist=await res.json();
       const content=gist.files?.['money-data.json']?.content;

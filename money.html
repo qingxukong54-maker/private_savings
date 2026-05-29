@@ -393,13 +393,15 @@ let _editTxId = null; // track editing tx id for type switch
 
 // Load
 try{ const s=localStorage.getItem(STORAGE_KEY); if(s) data=JSON.parse(s); if(!data.accounts) data.accounts=[...DEFAULT_ACCOUNTS]; if(!data.budgets) data.budgets={}; if(!data.customBudgets) data.customBudgets=[]; data.version=VERSION; }catch(e){}
+// 页面加载时自动根据交易计算各账户余额（含校正）
+if(data.accounts){ data.accounts.forEach(acc=>{ const id=acc.id; let bal=0; (data.transactions||[]).forEach(t=>{ if(t.account===id){ if(t.type==='income') bal+=t.amount; else if(t.type==='expense') bal-=t.amount; else if(t.type==='transfer'){ if(t.account===id) bal-=t.amount; if(t.targetAccount===id) bal+=t.amount; } } }); const corr=acc.balanceCorrection||0; acc.balance=Math.round((bal+corr)*100)/100; }); }
 // 一次性清理旧的负债账户（已从IIFE改为直接过滤，用户不再需要这些账户）
 const OLD_LIABILITY_IDS = new Set(['banni','zuozuo','jiangyue','ccb_card','cmb_card','zl_finance','zhangyi','jiebei']);
 const hadOld = data.accounts && data.accounts.some(a=>OLD_LIABILITY_IDS.has(a.id));
 if(hadOld){ data.accounts = data.accounts.filter(a=>!OLD_LIABILITY_IDS.has(a.id)); saveData(); }
 
 function saveData(){
-  // 自动根据交易重新计算各账户余额
+  // 自动根据交易重新计算各账户余额（含手动校正）
   if(data.accounts){
     data.accounts.forEach(acc=>{
       const id = acc.id;
@@ -409,12 +411,14 @@ function saveData(){
           if(t.type === 'income') bal += t.amount;
           else if(t.type === 'expense') bal -= t.amount;
           else if(t.type === 'transfer'){
-            if(t.account === id) bal -= t.amount;   // 转出
-            if(t.targetAccount === id) bal += t.amount; // 转入
+            if(t.account === id) bal -= t.amount;
+            if(t.targetAccount === id) bal += t.amount;
           }
         }
       });
-      acc.balance = Math.round(bal*100)/100;
+      // 加上手动校正量
+      const corr = acc.balanceCorrection || 0;
+      acc.balance = Math.round((bal + corr)*100)/100;
     });
   }
   data.version = VERSION;

@@ -399,6 +399,24 @@ const hadOld = data.accounts && data.accounts.some(a=>OLD_LIABILITY_IDS.has(a.id
 if(hadOld){ data.accounts = data.accounts.filter(a=>!OLD_LIABILITY_IDS.has(a.id)); saveData(); }
 
 function saveData(){
+  // 自动根据交易重新计算各账户余额
+  if(data.accounts){
+    data.accounts.forEach(acc=>{
+      const id = acc.id;
+      let bal = 0;
+      (data.transactions||[]).forEach(t=>{
+        if(t.account === id){
+          if(t.type === 'income') bal += t.amount;
+          else if(t.type === 'expense') bal -= t.amount;
+          else if(t.type === 'transfer'){
+            if(t.account === id) bal -= t.amount;   // 转出
+            if(t.targetAccount === id) bal += t.amount; // 转入
+          }
+        }
+      });
+      acc.balance = Math.round(bal*100)/100;
+    });
+  }
   data.version = VERSION;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   cloudSave();

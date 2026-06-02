@@ -1167,6 +1167,7 @@ function renderAccounts(){
         <div class="acc-name">${acc.name}</div>
       </div>
       <div class="acc-balance ${acc.balance<0?'negative':''}">${fmt(acc.balance)}</div>
+      <button class="budget-edit" onclick="editAccount(${idx})" title="编辑账户" style="color:var(--primary);font-size:14px;margin-left:4px;background:none;border:none;cursor:pointer;">✎</button>
       <button class="budget-edit" onclick="deleteAccount(${idx})" title="删除账户" style="color:var(--text3);font-size:16px;margin-left:4px;">✕</button>
     </div>`;
   });
@@ -1199,6 +1200,47 @@ function deleteAccount(idx){
   if(!acc) return;
   if(!confirm(`确定删除账户「${acc.name}」？\n余额 ${fmt(acc.balance)}，相关的记账记录不会删除。`)) return;
   data.accounts.splice(idx, 1);
+  saveData(); renderPage();
+}
+
+function editAccount(idx){
+  const acc = data.accounts[idx];
+  if(!acc) return;
+  
+  const name = prompt('账户名称：', acc.name);
+  if(name === null) return;
+  if(!name.trim()) { alert('名称不能为空'); return; }
+  
+  const emoji = prompt('图标 emoji（如 💳）：', acc.emoji) || acc.emoji;
+  
+  const balanceStr = prompt('当前余额（元）：', acc.balance);
+  if(balanceStr === null) return;
+  
+  // 更新账户信息
+  acc.name = name.trim();
+  acc.emoji = emoji;
+  
+  // 如果修改了余额，计算 balanceCorrection
+  const newBalance = parseFloat(balanceStr);
+  if(!isNaN(newBalance)){
+    // 计算当前交易流水值
+    let bal = 0;
+    (data.transactions||[]).forEach(t=>{
+      if(t.account === acc.id){
+        if(t.type === 'income') bal += t.amount;
+        else if(t.type === 'expense') bal -= t.amount;
+        else if(t.type === 'transfer'){
+          if(t.account === acc.id) bal -= t.amount;
+          if(t.targetAccount === acc.id) bal += t.amount;
+        }
+      }
+    });
+    
+    // 设置 correction
+    acc.balanceCorrection = Math.round((newBalance - bal)*100)/100;
+    acc.balance = newBalance;
+  }
+  
   saveData(); renderPage();
 }
 

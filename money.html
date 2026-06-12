@@ -1479,7 +1479,8 @@ function showMorePanel(){
       <div class="more-menu-item" onclick="closeMorePanel();document.getElementById('importFile').click()"><span class="mmi-icon">📥</span><span class="mmi-text">导入数据</span><span class="mmi-arrow">›</span></div>
       <div class="more-menu-divider"></div>
       <div class="more-menu-item" onclick="closeMorePanel();toggleTheme()"><span class="mmi-icon">${data.settings.theme==='dark'?'☀️':'🌙'}</span><span class="mmi-text">切换主题</span><span class="mmi-arrow">›</span></div>
-      <div class="more-menu-item" onclick="closeMorePanel();cloudLoad()"><span class="mmi-icon">🔄</span><span class="mmi-text">手动同步</span><span class="mmi-arrow">›</span></div>
+      <div class="more-menu-item" onclick="closeMorePanel();cloudLoad()"><span class="mmi-icon">🔄</span><span class="mmi-text">手动同步（拉取）</span><span class="mmi-arrow">›</span></div>
+      <div class="more-menu-item" onclick="closeMorePanel();cloudSave(true)"><span class="mmi-icon">☁️</span><span class="mmi-text">强制同步（推送）</span><span class="mmi-arrow">›</span></div>
     </div>`;
 }
 function closeMorePanel(){ document.getElementById('modalContainer').innerHTML=''; }
@@ -1570,23 +1571,35 @@ async function updateCloudConfig(){
   }
 }
 
-let cloudSaveTimer=null, cloudLoading=false;
-function cloudSave(){
-  if(!cloudConfig||cloudLoading) return;
-  if(cloudSaveTimer) clearTimeout(cloudSaveTimer);
-  cloudSaveTimer=setTimeout(async()=>{
-    try{
-      const getRes=await fetch(GIST_API+'/'+cloudConfig.gistId,{headers:{'Authorization':'Bearer '+cloudConfig.token}});
-      if(!getRes.ok)return;
-      const gist=await getRes.json();
-      await fetch(GIST_API+'/'+cloudConfig.gistId,{
-        method:'PATCH',
-        headers:{'Authorization':'Bearer '+cloudConfig.token,'Content-Type':'application/json'},
-        body:JSON.stringify({files:{'money-data.json':{content:JSON.stringify(data)}}})
-      });
+let cloudSaveTimer=null, cloudLoading=false, lastSyncData=null;
+function cloudSave(force=false){
+  if(!cloudConfig) return;
+  if(cloudLoading && !force) return;
+  if(cloudSaveTimer && !force) clearTimeout(cloudSaveTimer);
+  if(force){
+    performCloudSave();
+  } else {
+    cloudSaveTimer=setTimeout(()=>performCloudSave(),1500);
+  }
+}
+
+async function performCloudSave(){
+  try{
+    const dataStr = JSON.stringify(data);
+    if(dataStr === lastSyncData) return; // 数据未变化，跳过
+    const res = await fetch(GIST_API+'/'+cloudConfig.gistId,{
+      method:'PATCH',
+      headers:{'Authorization':'Bearer '+cloudConfig.token,'Content-Type':'application/json'},
+      body:JSON.stringify({files:{'money-data.json':{content:dataStr}}})
+    });
+    if(res.ok){
+      lastSyncData = dataStr;
       showSync('已同步 ✓',2000);
-    }catch(e){console.error('Cloud save error:',e);}
-  },1500);
+    } else {
+      console.error('Cloud save failed:',res.status);
+      showSync('同步失败: '+res.status,3000,true);
+    }
+  }catch(e){console.error('Cloud save error:',e);}
 }
 
 async function cloudLoad(silent=false){
@@ -1601,13 +1614,41 @@ async function cloudLoad(silent=false){
       if(content){
         const json=JSON.parse(content);
         if(json&&json.version===VERSION){
-          const local=JSON.stringify(data), remote=JSON.stringify(json);
-          if(local!==remote){data=json;localStorage.setItem(STORAGE_KEY,JSON.stringify(data));renderAll();if(!silent)showSync('已同步 ✓',2000);}
+          const localStr=JSON.stringify(data), remoteStr=JSON.stringify(json);
+          if(localStr!==remoteStr){
+            // 合并数据：保留本地不存在的远程交易
+            if(json.transactions && Array.isArray(json.transactions)){
+              const existIds = new Set(data.transactions.map(t=>t.id));
+              let newCount = 0;
+              json.transactions.forEach(t=>{
+                if(!existIds.has(t.id)){
+                  data.transactions.push(t);
+                  newCount++;
+                }
+              });
+              if(newCount > 0){
+                console.log(`[Cloud] 合并了 ${newCount} 条新交易`);
+              }
+            }
+            // 更新账户、预算等
+            if(json.accounts) data.accounts = json.accounts;
+            if(json.budgets) data.budgets = json.budgets;
+            if(json.customBudgets) data.customBudgets = json.customBudgets;
+            if(json.settings) data.settings = json.settings;
+            
+            localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+            renderAll();
+            if(!silent) showSync('已同步 ✓',2000);
+          }
           else if(!silent) showSync('已是最新 ✓',2000);
+        } else {
+          if(!silent) showSync('版本不匹配',3000,true);
         }
+      } else {
+        if(!silent) showSync('远程无数据',3000,true);
       }
     } else { if(!silent) showSync('拉取失败: '+res.status,3000,true); }
-  }catch(e){ if(!silent){console.error(e);showSync('拉取失败',3000,true);} }
+  }catch(e){ if(!silent){console.error('Cloud load error:',e);showSync('拉取失败',3000,true);} }
   finally{cloudLoading=false;}
 }
 
@@ -1655,6 +1696,66 @@ function importData(event){
 }
 
 // ===== INIT =====
+
+// 自动添加交易（通过 URL 参数）
+function autoAddFromURL(){
+  const params = new URLSearchParams(window.location.search);
+  const type = params.get('type') || params.get('t');
+  if(!type) return;
+  
+  const amount = parseFloat(params.get('amount') || params.get('a'));
+  const category = params.get('category') || params.get('c') || '';
+  const account = params.get('account') || params.get('acc') || 'wechat';
+  const date = params.get('date') || params.get('d') || todayStr();
+  const note = decodeURIComponent(params.get('note') || params.get('n') || '');
+  const time = params.get('time') || new Date().toTimeString().slice(0,5);
+  
+  if(!amount || amount <= 0){
+    console.warn('[AutoAdd] 金额无效:', amount);
+    return;
+  }
+  
+  if(type !== 'transfer' && !category){
+    console.warn('[AutoAdd] 缺少分类');
+    return;
+  }
+  
+  const newTx = {
+    id: 'txn_' + Date.now() + '_' + Math.random().toString(36).substr(2,4),
+    type,
+    amount,
+    category,
+    account,
+    date,
+    time,
+    note,
+    createdAt: new Date().toISOString()
+  };
+  
+  if(type === 'transfer'){
+    newTx.toAccount = params.get('toAccount') || params.get('to') || '';
+    if(!newTx.toAccount || newTx.toAccount === account){
+      console.warn('[AutoAdd] 转账需选择不同账户');
+      return;
+    }
+  }
+  
+  data.transactions.push(newTx);
+  console.log('[AutoAdd] 已添加:', newTx);
+  
+  // 保存并同步
+  saveData();
+  
+  // 显示提示
+  const addedMsg = `✓ 已自动添加：${type==='expense'?'支出':type==='income'?'收入':'转账'} ¥${amount} (${date}) ${note?' - '+note:''}`;
+  setTimeout(()=>{
+    alert(addedMsg);
+    // 清掉 URL 参数，避免刷新重复添加
+    if(window.history) window.history.replaceState({}, document.title, window.location.pathname);
+  }, 500);
+}
+
+autoAddFromURL();
 renderAll();
 </script>
 </body>

@@ -1613,7 +1613,7 @@ async function cloudLoad(silent=false){
       const content=gist.files?.['money-data.json']?.content;
       if(content){
         const json=JSON.parse(content);
-        if(json&&json.version===VERSION){
+        if(json&&json.version>=1){
           const localStr=JSON.stringify(data), remoteStr=JSON.stringify(json);
           if(localStr!==remoteStr){
             // 合并数据：保留本地不存在的远程交易
